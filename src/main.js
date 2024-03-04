@@ -16,14 +16,14 @@ loadSprite("bean", "/sprites/bean.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 loadSprite("gigagantrum", "/sprites/gigagantrum.png")
 
-  // Place an empty tower sprite at each spot
-  towerSpots.forEach(spot => {
-    add([
-      sprite("emptyTower"),
-      pos(spot.pos),
-      "emptyTowerSpot",
-    ]);
-  });
+// Place an empty tower sprite at each spot
+towerSpots.forEach(spot => {
+  add([
+    sprite("emptyTower"),
+    pos(spot.pos),
+    "emptyTowerSpot",
+  ]);
+});
 
 // Function to add a tower, including removing the empty tower spot sprite
 function addGigagantrumTower(position) {
@@ -140,5 +140,4 @@ loop(5, () => {
 
 
 debug.inspect = true
-
 
