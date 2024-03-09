@@ -2,14 +2,25 @@ export const towerTypes = {
   gigagantrum: {
     sprite: "gigagantrum",
     cost: 100,
-    bullet_speed: 700,
-    bullet_rate: 1
+    bullet_speed: 1000,
+    bullet_rate: 1,
+    bullet_damage:30,
   },
   beanTower: {
     sprite: "bean",
+    range: 500,
+    cost: 500,
+    bullet_speed: 400,
+    bullet_rate:60,
+    bullet_damage:1,
+  },
+  eggTower: {
+    sprite: "egg",
+    range: 1000,
     cost: 200,
-    bullet_speed: 2000,
-    bullet_rate: 60
+    bullet_speed: 3000,
+    bullet_rate: 0.5,
+    bullet_damage:100,
   }
 };
 
@@ -51,14 +62,48 @@ export function addGigagantrumTower(position, type = "gigagantrum") {
     { lastShot: time(), bullet_speed: towerConfig.bullet_speed, bullet_rate: towerConfig.bullet_rate }
   ]);
 
-  tower.onCollideUpdate("enemy", (e) => {
-    // Check if 1 second has passed since the last shot
-    if (time() - tower.lastShot > (1/tower.bullet_rate)) { // Adjust 1 to your desired cooldown time in seconds
-      shootProjectile(tower.pos, e.pos, tower.bullet_speed, tower.bullet_rate);
-      //debug.log("shoot");
-      tower.lastShot = time(); // Update the last shot time
+  let lastTargetUpdate = 0;
+  const targetUpdateInterval = 1; // Update target every 2 seconds, for example
+  let currentTarget = null; // Holds the current target enemy
+
+  tower.onUpdate(() => {
+    let currentTime = time();
+
+    // Update the target only at the specified interval
+    if (currentTime - lastTargetUpdate > targetUpdateInterval) {
+      let targetEnemy = null;
+      let maxRight = -Infinity;
+      const enemies = get("enemy").filter(e => e.hp() > 0);
+      console.log("refreshing enemies")
+      enemies.forEach(e => {
+        let distance = e.pos.dist(tower.pos);
+        if (distance <= towerConfig.range && e.pos.x > maxRight) {
+          maxRight = e.pos.x;
+          targetEnemy = e;
+          console.log(`Best enemy was ${e.pos}`)
+        }
+      });
+
+      if (targetEnemy) {
+        currentTarget = targetEnemy; // Update current target
+        lastTargetUpdate = currentTime; // Update the time of the last target update
+      } else {
+        currentTarget = null;
+      }
+    }
+
+    if (currentTarget && currentTime - tower.lastShot > (1 / tower.bullet_rate)) {
+      let distanceToCurrentTarget = currentTarget.pos.dist(tower.pos);
+
+      if (distanceToCurrentTarget <= towerConfig.range && currentTarget.hp() > 0) {
+        shootProjectile(tower.pos, currentTarget.pos, tower.bullet_speed, tower.bullet_damage);
+        tower.lastShot = currentTime; // Update the last shot time
+      } else {
+        currentTarget = null;
+      }
     }
   });
+
   // Find and remove the empty tower spot sprite at this position
   const emptySpotSprite = get("emptyTowerSpot").find(s => s.pos.x === position.x && s.pos.y === position.y);
   if (emptySpotSprite) {
@@ -67,7 +112,7 @@ export function addGigagantrumTower(position, type = "gigagantrum") {
 }
 
 // Projectile function
-function shootProjectile(fromPos, toPos, bulletSpeed) {
+function shootProjectile(fromPos, toPos, bulletSpeed, bulletDamage) {
   const direction = toPos.sub(fromPos).unit();
   const projectile = add([
     rect(20, 5), // Adjust size as needed

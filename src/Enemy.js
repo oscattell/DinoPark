@@ -1,6 +1,7 @@
 const enemyTypes = {
-    "ghosty": { sprite: "ghosty", health: 2, speed: 100 },
-    // Define other enemy types here
+  "ghosty": { sprite: "ghosty", health: 20, speed: 100, color: { r: 0, g: 0, b: 255 }},
+  "ghostyf": { sprite: "ghosty", health: 5, speed: 300, color: { r: 255, g: 0, b: 0 }},
+  "ghostyb": { sprite: "ghosty", health: 500, speed: 50, color: { r: 255, g: 200, b: 0 }},
   };
 
 export function addEnemy(type, enemyPos, endpoint) {

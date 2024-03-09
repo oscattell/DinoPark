@@ -16,7 +16,7 @@ loadSprite("emptyTower", "/sprites/heart.png")
 loadSprite("bean", "/sprites/bean.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 loadSprite("gigagantrum", "/sprites/gigagantrum.png")
-
+loadSprite("egg", "/sprites/egg.png")
 // Place an empty tower sprite at each spot
 towerSpots.forEach(spot => {
   add([
@@ -71,7 +71,11 @@ displayTowerSelectionMenu()
 loop(5, () => {
   addEnemy("ghosty", vec2(0, height() - 680), endpoint);
 });
-
-
+loop(5, () => {
+  addEnemy("ghostyf", vec2(0, height() - 680), endpoint);
+});
+loop(10, () => {
+  addEnemy("ghostyb", vec2(0, height() - 680), endpoint);
+});
 debug.inspect = true
 
