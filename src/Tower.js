@@ -1,6 +1,9 @@
+import { addMoney, subtractMoney, getMoney } from "./state.js";
+
 export const towerTypes = {
   gigagantrum: {
     sprite: "gigagantrum",
+    range: 400,
     cost: 100,
     bullet_speed: 1000,
     bullet_rate: 1,
@@ -26,6 +29,14 @@ export const towerTypes = {
 
 let selectedTowerType = "gigagantrum"; // Default selected tower
 
+export function getTowerCost(towerType) {
+  return towerTypes[selectedTowerType].cost;
+}
+
+export function getSelectedTower() {
+  return selectedTowerType;
+}
+
 // Function to update selectedTowerType
 function setSelectedTowerType(newType) {
   selectedTowerType = newType;
@@ -43,7 +54,7 @@ export function displayTowerSelectionMenu() {
       { tower_type: key }
     ]);
     onClick("selectableTower", (selectedTower) => {
-      console.log(`current key = ${selectedTower.tower_type}`)
+      //console.log(`current key = ${selectedTower.tower_type}`)
       setSelectedTowerType(selectedTower.tower_type); // Update the selected tower type
     });
     xOffset += 400; // Move the next icon to the right
@@ -56,10 +67,11 @@ export function addGigagantrumTower(position, type = "gigagantrum") {
   const tower = add([
     sprite(towerConfig.sprite),
     pos(position),
-    area({ shape: new Polygon([vec2(-200,300), vec2(300,300), vec2(300, -200), vec2(-200, -200)]) }),
+    //area({ shape: new Polygon([vec2(-towerConfig.range,towerConfig.range), vec2(towerConfig.range,towerConfig.range), vec2(towerConfig.range, -towerConfig.range), vec2(-towerConfig.range, -towerConfig.range)]) }),
+    anchor("center"),
     "tower",
     // Add a property to track the last shot time
-    { lastShot: time(), bullet_speed: towerConfig.bullet_speed, bullet_rate: towerConfig.bullet_rate }
+    { lastShot: time(), bullet_speed: towerConfig.bullet_speed, bullet_rate: towerConfig.bullet_rate, bullet_damage: towerConfig.bullet_damage}
   ]);
 
   let lastTargetUpdate = 0;
@@ -123,16 +135,18 @@ function shootProjectile(fromPos, toPos, bulletSpeed, bulletDamage) {
     move(direction, bulletSpeed), // Adjust speed as needed
   ]);
   projectile.onCollide("enemy", (e) => {
-    debug.log("bang");
-    e.hurt(1); // Reduce enemy health by 1
+    //console.log(`Hitting for ${bulletDamage} on ${e.hp()}`);
+    e.hurt(bulletDamage); // Reduce enemy health
+    //console.log(`new health for ${e.hp()}`);
     if (e.hp() <= 0) {
-      destroy(e); // Destroy enemy if health is 0 or less
+      addMoney(50);
+      e.destroy(); // Destroy enemy if health is 0 or less
     }
     destroy(projectile);
   });
   // Destroy the projectile after 2 seconds
-  wait(1, () => {
-    debug.log("remove bullet");
+  wait(2, () => {
+    //debug.log("remove bullet");
     destroy(projectile);
   });
 }

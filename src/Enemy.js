@@ -4,11 +4,27 @@ const enemyTypes = {
   "ghostyb": { sprite: "ghosty", health: 500, speed: 50, color: { r: 255, g: 200, b: 0 }},
   };
 
-export function addEnemy(type, enemyPos, endpoint) {
+function generatePath() {
+  return [
+    vec2(400, height() - 710),
+    vec2(400, height() - 400),
+    vec2(600, height() - 400),
+    vec2(800, height() - 400),
+    vec2(800, height() - 710),
+    vec2(1200, height() - 710),
+    vec2(width(), height() - 710),
+  ];
+}
+
+
+export function addEnemy(type, enemyPos) {
   const enemyConfig = enemyTypes[type];
-  debug.log(`Add enemy with ${enemyConfig.health} health`);
+  const path = generatePath(); // Get the path for the enemy
+  let currentTargetIndex = 0; // Start with the first waypoint
+
   const enemy = add([
     sprite(enemyConfig.sprite),
+    color(enemyConfig.color.r, enemyConfig.color.g, enemyConfig.color.b),
     pos(enemyPos),
     area(),
     health(enemyConfig.health),
@@ -16,15 +32,20 @@ export function addEnemy(type, enemyPos, endpoint) {
     state("move", ["idle", "attack", "move"]),
   ]);
 
-  enemy.onStateUpdate("move", () => {
-    if (!endpoint.exists()) return;
-    const dir = endpoint.pos.sub(enemy.pos).unit();
+  enemy.onUpdate(() => {
+    // Check if the enemy has reached its current target waypoint
+    if (vec2(enemy.pos).dist(path[currentTargetIndex]) < 5) { // 5 is a small threshold to consider 'reaching' the waypoint
+      currentTargetIndex++; // Move to the next waypoint
+      if (currentTargetIndex >= path.length) {
+        // If there are no more waypoints, you might want to destroy the enemy or trigger another action
+        destroy(enemy);
+        go("lose");
+        return;
+      }
+    }
+    // Calculate direction to the current target waypoint and move the enemy
+    const dir = path[currentTargetIndex].sub(enemy.pos).unit();
     enemy.move(dir.scale(enemyConfig.speed));
   });
-
-  enemy.onCollide("endpoint", () => {
-    debug.log("game over");
-    enemy.enterState("idle");
-    destroy(enemy);
-  });
 }
+

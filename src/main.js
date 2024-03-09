@@ -1,5 +1,6 @@
-import {  addGigagantrumTower, displayTowerSelectionMenu } from "./Tower.js";
+import {addGigagantrumTower, displayTowerSelectionMenu, getTowerCost, getSelectedTower } from "./Tower.js";
 import {addEnemy} from "./Enemy.js";
+import { addMoney, subtractMoney, getMoney, diplayMoney } from "./state.js";
 
 kaboom()
 
@@ -31,11 +32,23 @@ onMousePress(() => {
   const mousePosition = mousePos();
   const nearestSpot = towerSpots.find(spot => spot.pos.dist(mousePosition) < 50 && !spot.occupied);
 
-  if (nearestSpot) {
+  if (nearestSpot && getMoney() >= getTowerCost(getSelectedTower())) {
     addGigagantrumTower(nearestSpot.pos);
     nearestSpot.occupied = true; // Mark the spot as occupied
+
+    subtractMoney(getTowerCost(getSelectedTower()));
+
   }
 });
+
+scene("lose", () => {
+  add([
+    text("Game Over"),
+    color(255,0,0),
+    pos(width()/2, height()/2),
+    anchor("center")
+  ])
+})
 
 //path
 add([
@@ -66,6 +79,10 @@ const endpoint = add([
 ])
 
 displayTowerSelectionMenu()
+
+
+diplayMoney(1000)
+
 
 // Use loop to add an enemy every 5 seconds
 loop(5, () => {
