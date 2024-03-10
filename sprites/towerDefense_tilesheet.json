@@ -1,0 +1,92 @@
+{
+	"path_bottom_upright": {
+		"x": 0,
+		"y": 0,
+		"width": 64,
+		"height": 64
+	},
+  "path_bottom": {
+		"x": 64,
+		"y": 0,
+		"width": 64,
+		"height": 64
+	},
+  "path_bottom_rightdown": {
+		"x": 128,
+		"y": 0,
+		"width": 64,
+		"height": 64
+	},
+  "path_top_upright": {
+		"x": 192,
+		"y": 0,
+		"width": 64,
+		"height": 64
+	},
+  "path_top_rightdown": {
+		"x": 256,
+		"y": 0,
+		"width": 64,
+		"height": 64
+	},
+  "path_up_rightside": {
+		"x": 0,
+		"y": 64,
+		"width": 64,
+		"height": 64
+	},
+  "path_blank": {
+		"x": 64,
+		"y": 64,
+		"width": 64,
+		"height": 64
+	},
+  "path_up_leftside": {
+		"x": 128,
+		"y": 64,
+		"width": 64,
+		"height": 64
+	},
+  "path_bottom_downright": {
+		"x": 192,
+		"y": 64,
+		"width": 64,
+		"height": 64
+	},
+  "path_bottom_rightup": {
+		"x": 256,
+		"y": 64,
+		"width": 64,
+		"height": 64
+	},
+  "path_top_downright": {
+		"x": 0,
+		"y": 128,
+		"width": 64,
+		"height": 64
+	},
+  "path_top": {
+		"x": 64,
+		"y": 128,
+		"width": 64,
+		"height": 64
+	},
+  "path_top_rightup": {
+		"x": 128,
+		"y": 128,
+		"width": 64,
+		"height": 64
+	},
+  "path_circle": {
+		"x": 192,
+		"y": 128,
+		"width": 64,
+		"height": 64
+	},
+  "path_path": {
+		"x": 256,
+		"y": 128,
+		"width": 64,
+		"height": 64
+	}
+}

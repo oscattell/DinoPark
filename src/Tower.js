@@ -50,6 +50,7 @@ export function displayTowerSelectionMenu() {
       sprite(value.sprite),
       pos(xOffset, height() - 150),
       area(),
+      z(9),
       "selectableTower",
       { tower_type: key }
     ]);
@@ -126,11 +127,14 @@ export function addGigagantrumTower(position, type = "gigagantrum") {
 // Projectile function
 function shootProjectile(fromPos, toPos, bulletSpeed, bulletDamage) {
   const direction = toPos.sub(fromPos).unit();
+  const angle = (Math.atan2(direction.y, direction.x)* 180 / Math.PI)+90;
+
   const projectile = add([
-    rect(20, 5), // Adjust size as needed
+    sprite("bullet"), // Adjust size as needed
     pos(fromPos),
     color(255, 0, 0),
     area(),
+    rotate(angle),
     "projectile", // Tag for collision detection
     move(direction, bulletSpeed), // Adjust speed as needed
   ]);

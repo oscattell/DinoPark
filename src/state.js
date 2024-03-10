@@ -7,6 +7,7 @@ export function diplayMoney(startingMoney = 500) {
     text(`Money: $${getMoney()}`),
     pos(20, 20),
     color(0,0,0),
+    z(9),
     { value: getMoney() },
   ]);
 }
