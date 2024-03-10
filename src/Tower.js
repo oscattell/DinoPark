@@ -58,7 +58,8 @@ export function generateTowerSpotsFromLevel(levelLayout, tileWidth, tileHeight, 
         pos(worldX, worldY),
         area(),
         anchor("center"),
-        color(0, 0, 0, 0), // Make it invisible
+        color(0, 0, 0),
+        opacity(0),
         "towerSpotButton",
         {
           menuOpen: false, // Track if the menu is open for this spot
@@ -268,7 +269,7 @@ function shootProjectile(fromPos, toPos, bulletSpeed, bulletDamage, bulletSprite
     e.hurt(bulletDamage); // Reduce enemy health
     //console.log(`new health for ${e.hp()}`);
     if (e.hp() <= 0) {
-      addMoney(50);
+      addMoney(e.death_money);
       e.destroy(); // Destroy enemy if health is 0 or less
     }
     destroy(projectile);

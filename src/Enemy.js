@@ -1,11 +1,20 @@
+import {generateTowerSpotsFromLevel} from "./Tower.js";
+
 const enemyTypes = {
-  "ghosty": { sprite: "chort", health: 20, speed: 100, color: { r: 0, g: 0, b: 255 }},
-  "ghostyf": { sprite: "imp", health: 5, speed: 300, color: { r: 255, g: 0, b: 0 }},
-  "ghostyb": { sprite: "big_demon", health: 500, speed: 50, color: { r: 255, g: 200, b: 0 }},
-  "ghostyg": { sprite: "wogol", health: 1, speed: 65, color: { r: 255, g: 200, b: 0 }},
+  "ghosty": { sprite: "chort", health: 20, speed: 100, death_money: 100, color: { r: 0, g: 0, b: 255 }},
+  "ghostyf": { sprite: "imp", health: 5, speed: 300, death_money: 100, color: { r: 255, g: 0, b: 0 }},
+  "ghostyb": { sprite: "big_demon", health: 500, speed: 50, death_money: 1000, color: { r: 255, g: 200, b: 0 }},
+  "ghostyg": { sprite: "wogol", health: 1, speed: 65, death_money: 100, color: { r: 255, g: 200, b: 0 }},
   };
 
 let path =  [];
+
+export function generateStartPosFromLevel(levelLayout, tileWidth, tileHeight) {
+  const start = findStart(levelLayout);
+  let startPos = vec2((start.x * tileWidth), (start.y * tileHeight)+(tileHeight/2))
+  console.log(`Start found at ${startPos}`)
+  return startPos
+}
 
 function findStart(levelLayout) {
   for (let y = 0; y < levelLayout.length; y++) {
@@ -100,6 +109,7 @@ export function addEnemy(type, enemyPos, onDefeatedCallback) {
     anchor("center"),
     "enemy",
     state("move", ["idle", "attack", "move"]),
+    {death_money: enemyConfig.death_money}
   ]);
 
   enemy.play("run")

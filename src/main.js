@@ -1,5 +1,5 @@
 import {displayTowerSelectionMenuAt, generateTowerSpotsFromLevel} from "./Tower.js";
-import {addEnemy, setPathFromLevel} from "./Enemy.js";
+import {addEnemy, setPathFromLevel, generateStartPosFromLevel} from "./Enemy.js";
 import { addMoney, subtractMoney, getMoney, diplayMoney } from "./state.js";
 
 kaboom()
@@ -9,23 +9,35 @@ const waves = [
   "22222222223",
 ];
 
+const levelPath = [
+  	"  x          ",
+    "  ┏━━┓     x ",
+  	"S━┛  ┃ x  xx ",
+  	"  x  ┃     x ",
+    "    x┗━━━━━E ",
+]
+
+let isGameOver = false;
 let currentWaveIndex = 0;
 let enemiesRemaining = 0;
+let start = vec2(0,0);
 
 function spawnEnemyFromType(type) {
-  switch(type) {
-    case '1':
-      addEnemy("ghosty", vec2(0, height() - 680), onEnemyDefeated);
-      break;
-    case '2':
-      addEnemy("ghostyf", vec2(0, height() - 680), onEnemyDefeated);
-      break;
-    case '3':
-      addEnemy("ghostyg", vec2(0, height() - 680), onEnemyDefeated);
-      break;
-    case '4':
-      addEnemy("ghostyb", vec2(0, height() - 680), onEnemyDefeated);
-      break;
+  if(!isGameOver) {
+    switch (type) {
+      case '1':
+        addEnemy("ghosty", start, onEnemyDefeated);
+        break;
+      case '2':
+        addEnemy("ghostyf", start, onEnemyDefeated);
+        break;
+      case '3':
+        addEnemy("ghostyg", start, onEnemyDefeated);
+        break;
+      case '4':
+        addEnemy("ghostyb", start, onEnemyDefeated);
+        break;
+    }
   }
 }
 
@@ -78,35 +90,6 @@ loadSprite("bullet3", "/sprites/towerDefense_tile251.png")
 loadSpriteAtlas("/sprites/0x72_DungeonTilesetII_v1.6.png", "/sprites/0x72_DungeonTilesetII_v1.6.json")
 loadSpriteAtlas("/sprites/Paths.png", "/sprites/Paths.json")
 
-// Listen for mouse presses to place towers
-/*onMousePress(() => {
-  const nearestSpot = towerSpots.find(spot => spot.pos.dist(mousePos()) < 50 && !spot.occupied);
-
-  if (nearestSpot) {
-    displayTowerSelectionMenuAt(nearestSpot.pos);
-  }
-});*/
-
-scene("lose", () => {
-  add([
-    text("Game Over"),
-    color(255,0,0),
-    pos(width()/2, height()/2),
-    anchor("center")
-  ])
-})
-
-let levelPath = [
-  	"  x       ",
-    "  ┏━━┓  x ",
-  	"S━┛  ┃ xx ",
-  	"  x  ┃  x ",
-    "    x┗━━E ",
-]
-generateTowerSpotsFromLevel(levelPath,128,128,vec2(0, 0));
-setPathFromLevel(levelPath,128,128,vec2(0, 0));
-
-
 const level = addLevel(levelPath, {
 	// The size of each grid
 	tileWidth: 128,
@@ -158,8 +141,20 @@ const level = addLevel(levelPath, {
 	},
 })
 
-diplayMoney(1000)
+scene("lose", () => {
+  add([
+    text("Game Over"),
+    color(255,0,0),
+    pos(width()/2, height()/2),
+    anchor("center")
+  ])
+  isGameOver = true;
+})
 
+setPathFromLevel(levelPath,128,128,vec2(0, 0));
+start = generateStartPosFromLevel(levelPath,128,128);
+generateTowerSpotsFromLevel(levelPath,128,128,vec2(0, 0));
+diplayMoney(1000)
 // Initially start the first wave
 if (waves.length > 0) {
   startWave(waves[currentWaveIndex]);
