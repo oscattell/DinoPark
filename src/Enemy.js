@@ -86,7 +86,7 @@ export function setPathFromLevel(levelLayout, tileWidth, tileHeight, startPos) {
 }
 
 
-export function addEnemy(type, enemyPos) {
+export function addEnemy(type, enemyPos, onDefeatedCallback) {
   const enemyConfig = enemyTypes[type];
   let currentTargetIndex = 0; // Start with the first waypoint
 
@@ -118,6 +118,10 @@ export function addEnemy(type, enemyPos) {
     // Calculate direction to the current target waypoint and move the enemy
     const dir = path[currentTargetIndex].sub(enemy.pos).unit();
     enemy.move(dir.scale(enemyConfig.speed));
+  });
+
+  enemy.onDestroy(() => {
+    onDefeatedCallback()
   });
 }
 

@@ -1,66 +1,91 @@
-import {addGigagantrumTower, displayTowerSelectionMenu, getTowerCost, getSelectedTower } from "./Tower.js";
+import {displayTowerSelectionMenuAt, generateTowerSpotsFromLevel} from "./Tower.js";
 import {addEnemy, setPathFromLevel} from "./Enemy.js";
 import { addMoney, subtractMoney, getMoney, diplayMoney } from "./state.js";
 
 kaboom()
 
-// Define your tower spots
-let towerSpots = [];
+const waves = [
+  "1111114",
+  "22222222223",
+];
 
-function generateTowerSpotsFromLevel(levelLayout, tileWidth, tileHeight, startPos) {
-  towerSpots = []; // Initialize an empty array for tower spots
+let currentWaveIndex = 0;
+let enemiesRemaining = 0;
 
-  // Iterate through the level layout
-  for (let y = 0; y < levelLayout.length; y++) {
-    for (let x = 0; x < levelLayout[y].length; x++) {
-      if (levelLayout[y][x] === "x") { // Check for 'x' symbol
-        // Calculate the world position of the tower spot
-        const worldX = startPos.x + x * tileWidth + tileWidth / 2; // Center of tile
-        const worldY = startPos.y + y * tileHeight + tileHeight / 2; // Center of tile
-
-        // Add the new tower spot to the array
-        towerSpots.push({
-          pos: vec2(worldX, worldY),
-          occupied: false
-        });
-      }
-    }
+function spawnEnemyFromType(type) {
+  switch(type) {
+    case '1':
+      addEnemy("ghosty", vec2(0, height() - 680), onEnemyDefeated);
+      break;
+    case '2':
+      addEnemy("ghostyf", vec2(0, height() - 680), onEnemyDefeated);
+      break;
+    case '3':
+      addEnemy("ghostyg", vec2(0, height() - 680), onEnemyDefeated);
+      break;
+    case '4':
+      addEnemy("ghostyb", vec2(0, height() - 680), onEnemyDefeated);
+      break;
   }
 }
 
+function startWave(waveString) {
+  let delay = 0; // Initial delay
+  const spawnDelay = 1000; // Delay between spawns in milliseconds, e.g., 1000ms = 1s
+
+  for (const type of waveString) {
+    setTimeout(() => {
+      spawnEnemyFromType(type);
+      enemiesRemaining++; // Ensure this is only incremented once the enemy is actually spawned
+    }, delay);
+
+    delay += spawnDelay; // Increment delay for the next spawn
+  }
+}
+
+
+function onEnemyDefeated() {
+  enemiesRemaining--;
+  if (enemiesRemaining <= 0 && currentWaveIndex < waves.length) {
+    countdownToNextWave();
+  }
+}
+
+function countdownToNextWave() {
+  let countdown = 5; // 5 seconds countdown
+  // Display countdown on screen, then start the next wave
+  setTimeout(() => {
+    currentWaveIndex++;
+    if (currentWaveIndex < waves.length) {
+      startWave(waves[currentWaveIndex]);
+    } else {
+      console.log("All waves completed!");
+    }
+  }, countdown * 1000);
+}
+
+
 // Load the sprite for empty tower spots
 loadSprite("emptyTower", "/sprites/heart.png")
-loadSprite("bean", "/sprites/bean.png")
+loadSprite("bean", "/sprites/towerDefense_tile249.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
-loadSprite("gigagantrum", "/sprites/gigagantrum.png")
-loadSprite("egg", "/sprites/egg.png")
-loadSprite("bullet", "/sprites/bulletRed1_outline.png")
+loadSprite("gigagantrum", "/sprites/towerDefense_tile204.png")
+loadSprite("egg", "/sprites/towerDefense_tile250.png")
+loadSprite("bullet1", "/sprites/bulletRed1_outline.png")
+loadSprite("bullet2", "/sprites/bulletGreen2.png")
+loadSprite("bullet3", "/sprites/towerDefense_tile251.png")
 
 loadSpriteAtlas("/sprites/0x72_DungeonTilesetII_v1.6.png", "/sprites/0x72_DungeonTilesetII_v1.6.json")
 loadSpriteAtlas("/sprites/Paths.png", "/sprites/Paths.json")
 
-// Place an empty tower sprite at each spot
-towerSpots.forEach(spot => {
-  add([
-    sprite("emptyTower"),
-    pos(spot.pos),
-    "emptyTowerSpot",
-  ]);
-});
-
 // Listen for mouse presses to place towers
-onMousePress(() => {
-  const mousePosition = mousePos();
-  const nearestSpot = towerSpots.find(spot => spot.pos.dist(mousePosition) < 50 && !spot.occupied);
+/*onMousePress(() => {
+  const nearestSpot = towerSpots.find(spot => spot.pos.dist(mousePos()) < 50 && !spot.occupied);
 
-  if (nearestSpot && getMoney() >= getTowerCost(getSelectedTower())) {
-    addGigagantrumTower(nearestSpot.pos);
-    nearestSpot.occupied = true; // Mark the spot as occupied
-
-    subtractMoney(getTowerCost(getSelectedTower()));
-
+  if (nearestSpot) {
+    displayTowerSelectionMenuAt(nearestSpot.pos);
   }
-});
+});*/
 
 scene("lose", () => {
   add([
@@ -71,35 +96,12 @@ scene("lose", () => {
   ])
 })
 
-//tower placement menu + tower
-add([
-  rect(2435, 150),
-  pos(63, 1120),
-  outline(5),
-  area(),
-  body(),
-])
-
-// Add player game object
-const endpoint = add([
-  sprite("bean"),
-  pos(2509, height() - 650),
-  area(),
-  anchor("center"),
-  "endpoint"
-])
-
-displayTowerSelectionMenu()
-
-
-diplayMoney(1000)
-
 let levelPath = [
-  	"          ",
+  	"  x       ",
     "  ┏━━┓  x ",
   	"S━┛  ┃ xx ",
   	"  x  ┃  x ",
-    "     ┗━━E ",
+    "    x┗━━E ",
 ]
 generateTowerSpotsFromLevel(levelPath,128,128,vec2(0, 0));
 setPathFromLevel(levelPath,128,128,vec2(0, 0));
@@ -156,16 +158,12 @@ const level = addLevel(levelPath, {
 	},
 })
 
+diplayMoney(1000)
 
-// Use loop to add an enemy every 5 seconds
-/*loop(5, () => {
-  addEnemy("ghosty", vec2(0, height() - 680), endpoint);
-  addEnemy("ghostyf", vec2(0, height() - 680), endpoint);
-  addEnemy("ghostyg", vec2(0, height() - 680), endpoint);
-});
-loop(10, () => {
-  addEnemy("ghostyb", vec2(0, height() - 680), endpoint);
-});*/
-addEnemy("ghostyb", vec2(0, height() - 680), endpoint);
+// Initially start the first wave
+if (waves.length > 0) {
+  startWave(waves[currentWaveIndex]);
+}
+
 debug.inspect = true
 
