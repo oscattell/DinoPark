@@ -1,0 +1,17 @@
+{"explosion": {
+		"x": 0,
+		"y": 0,
+		"width": 384,
+		"height": 320,
+		"sliceX": 6,
+    "sliceY": 5,
+		"anims": {
+			"boom": {
+				"from": 0,
+				"to": 29,
+				"speed": 30,
+				"loop": false
+			}
+		}
+	}
+}

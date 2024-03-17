@@ -1,35 +1,60 @@
-import { addMoney, subtractMoney, getMoney } from "./state.js";
+import {addMoney, getMoney, subtractMoney} from "./state.js";
 
 export const towerTypes = {
   gigagantrum: {
-    tower_sprite: "gigagantrum",
-    bullet_sprite: "bullet3",
-    range: 400,
-    cost: 100,
-    bullet_speed: 1000,
-    bullet_rate: 1,
-    bullet_damage:30,
+    levels: [{tower_sprite: "missile_tower_1",
+      bullet_sprite: "missile_1",
+      range: 400,
+      cost: 100,
+      bullet_speed: 400,
+      bullet_rate: 1,
+      bullet_damage:30,
+      tracking: true,
+      explosive: true},
+    {tower_sprite: "missile_tower_2",
+      bullet_sprite: "missile_1",
+      range: 400,
+      cost: 200,
+      bullet_speed: 200,
+      bullet_rate: 1,
+      bullet_damage:60,
+      tracking: true,
+      explosive: true},
+    {tower_sprite: "missile_tower_3",
+      bullet_sprite: "missile_2",
+      range: 400,
+      cost: 200,
+      bullet_speed: 200,
+      bullet_rate: 1,
+      bullet_damage:60,
+      tracking: true,
+      explosive: true}]
   },
   beanTower: {
-    tower_sprite: "bean",
+    levels: [{
+    tower_sprite: "machinegun_tower_1",
     bullet_sprite: "bullet2",
     range: 500,
     cost: 500,
     bullet_speed: 400,
-    bullet_rate:60,
+    bullet_rate:6,
     bullet_damage:1,
+    tracking: false,
+    explosive: false}]
   },
   eggTower: {
-    tower_sprite: "egg",
+    levels: [{
+    tower_sprite: "gun_tower_1",
     bullet_sprite: "bullet1",
     range: 1000,
     cost: 200,
     bullet_speed: 3000,
     bullet_rate: 0.5,
     bullet_damage:100,
+    tracking: false,
+    explosive: false}]
   }
 };
-
 // Define your tower spots
 let towerSpots = [];
 
@@ -46,8 +71,11 @@ export function generateTowerSpotsFromLevel(levelLayout, tileWidth, tileHeight, 
 
         const spot = {
           pos: vec2(worldX, worldY),
-          occupied: false
+          occupied: false,
+          tower: null, // To keep track of the tower type and level if a tower is placed
+          level: 0 // Keeping track of the tower's current level
         };
+
 
         // Add the new tower spot to the array
         towerSpots.push(spot);
@@ -63,9 +91,12 @@ export function generateTowerSpotsFromLevel(levelLayout, tileWidth, tileHeight, 
         "towerSpotButton",
         {
           menuOpen: false, // Track if the menu is open for this spot
-          clickAction: () => {
-            if (!spot.occupied && !spotButton.menuOpen) {
-              displayTowerSelectionMenuAt(spot.pos, spotButton);
+          onSelect: () => {
+            if (!spotButton.menuOpen) {
+              displayTowerSelectionMenuAt(spot, spotButton);
+            } else {
+              console.log("closing menu");
+              hideTowerSelectionMenu();
             }
           }
         }
@@ -75,55 +106,56 @@ export function generateTowerSpotsFromLevel(levelLayout, tileWidth, tileHeight, 
   }
 
   // Make tower spot buttons clickable
-  onClick("towerSpotButton", (spotButton) => {
+  /*onClick("towerSpotButton", (spotButton) => {
     spotButton.clickAction();
-  });
+  });*/
 }
 
-
-/*export function displayTowerSelectionMenu() {
-  let xOffset = 100; // Starting position of the first tower icon
-  Object.entries(towerTypes).forEach(([key, value]) => {
-    const towermenu = add([
-      sprite(value.sprite),
-      pos(xOffset, height() - 150),
-      area(),
-      z(9),
-      "selectableTower",
-      { tower_type: key }
-    ]);
-    onClick("selectableTower", (selectedTower) => {
-      //console.log(`current key = ${selectedTower.tower_type}`)
-      setSelectedTowerType(selectedTower.tower_type); // Update the selected tower type
-    });
-    xOffset += 400; // Move the next icon to the right
-  });
-}*/
-
-let menuComponents = []; // To keep track of menu components for later removal
-
-export function displayTowerSelectionMenuAt(position, spotButton) {
+export function displayTowerSelectionMenuAt(spot, spotButton) {
   hideTowerSelectionMenu(); // Clear any existing menu first
+  spotButton.menuOpen = true;
 
   let yOffset = 30; // Initial vertical offset for the first menu item
   const menuItemHeight = 70; // Height plus some padding
 
-  Object.keys(towerTypes).forEach((towerType, index) => {
-    const buttonPos = vec2(position.x, position.y + yOffset);
-    addTowerButton(towerType, buttonPos, () => {
-      console.log(`Adding tower ${towerType}`)
-      if (getMoney() >= towerTypes[towerType].cost) {
-        addGigagantrumTower(position, towerType);
-        subtractMoney(towerTypes[towerType].cost);
-      }
-    }, spotButton);
 
-    yOffset += menuItemHeight; // Move down for the next menu item
-  });
+  if (!spot.occupied) {
+    Object.keys(towerTypes).forEach((towerType, index) => {
+      const buttonPos = vec2(spot.pos.x, spot.pos.y + yOffset);
+      const { tower_sprite, cost } = towerTypes[towerType].levels[0];
+      addTowerButton(tower_sprite, cost, buttonPos, spotButton, () => {
+        console.log(`Adding tower ${towerType}`)
+        if (getMoney() >= towerTypes[towerType].levels[0].cost) {
+          spot.occupied = true;
+          spot.level = 0;
+          spot.tower = addTower(spot.pos, towerType, 0);
+          subtractMoney(towerTypes[towerType].levels[0].cost);
+        }
+      });
+
+      yOffset += menuItemHeight; // Move down for the next menu item
+    });
+  } else if (spot.level < towerTypes[spot.tower.tower_type].levels.length - 1) {
+    console.log(`Tower is level ${spot.level} and the max upgrades are ${towerTypes[spot.tower.tower_type].levels.length}`)
+    const buttonPos = vec2(spot.pos.x, spot.pos.y + yOffset);
+    const currentTowerType = spot.tower.tower_type;
+
+    addTowerButton("dollar", towerTypes[currentTowerType].levels[spot.level + 1].cost, buttonPos, spotButton, () => {
+        console.log(`Upgrade tower`)
+
+        if (getMoney() >= towerTypes[currentTowerType].levels[spot.level + 1].cost) {
+          spot.level += 1;
+          spot.tower.destroy();
+          spot.tower = addTower(spot.pos, currentTowerType, spot.level);
+          subtractMoney(towerTypes[currentTowerType].levels[spot.level].cost);
+        }
+
+      });
+  }
 }
 
-function addTowerButton(towerType, position, onSelect, spotButton) {
-  const { tower_sprite, cost } = towerTypes[towerType];
+function addTowerButton(icon, cost, position, spotButton, onSelect) {
+  //const { tower_sprite, cost } = towerTypes[towerType];
 
   const btn = add([
     rect(120, 60, { radius: 8 }), // Adjust size as needed
@@ -132,12 +164,16 @@ function addTowerButton(towerType, position, onSelect, spotButton) {
     scale(1),
     outline(4),
     color(255, 255, 255),
-    {tower_buttton: spotButton},
+    "towerMenuButton",
+    {tower_buttton: spotButton, onSelect: () => {
+        hideTowerSelectionMenu();
+        onSelect();
+      }},
   ]);
 
   // Tower icon
   btn.add([
-    sprite(tower_sprite),
+    sprite(icon),
     pos(0,15), // Position inside the button
     scale(0.5), // Scale the sprite down to fit the button
   ]);
@@ -159,44 +195,38 @@ function addTowerButton(towerType, position, onSelect, spotButton) {
     btn.scale = vec2(1); // Reset button size
     btn.color = rgb(255, 255, 255); // Reset color
   });
-
-  // Button click action
-  btn.onClick(() => {
-    if (spotButton.menuOpen) {
-      onSelect(); // Call the onSelect callback
-      hideTowerSelectionMenu(); // Hide the selection menu after selection
-      spotButton.menuOpen = false;
-    }
-  });
-
-  menuComponents.push(btn); // Keep track of this component for later removal
-  spotButton.menuOpen = true;
 }
 
-function hideTowerSelectionMenu() {
+export function hideTowerSelectionMenu() {
   // Destroy all menu components
-  menuComponents.forEach(destroy);
+  destroyAll("towerMenuButton");
 
   // Retrieve all objects tagged as "towerSpotButton" and reset their menuOpen property
   const towerSpotButtons = get("towerSpotButton");
   towerSpotButtons.forEach((btn) => {
+    console.log("resetting all menus")
     btn.menuOpen = false;
   });
 }
 
 
 // Function to add a tower, including removing the empty tower spot sprite
-export function addGigagantrumTower(position, selectedTowerType) {
+export function addTower(position, selectedTowerType, level = 0) {
   const towerConfig = towerTypes[selectedTowerType];
   const tower = add([
-    sprite(towerConfig.tower_sprite),
+    sprite(towerConfig.levels[level].tower_sprite),
     pos(position),
-    //area({ shape: new Polygon([vec2(-towerConfig.range,towerConfig.range), vec2(towerConfig.range,towerConfig.range), vec2(towerConfig.range, -towerConfig.range), vec2(-towerConfig.range, -towerConfig.range)]) }),
     anchor("center"),
     "tower",
     z(9),
-    // Add a property to track the last shot time
-    { lastShot: time(), bullet_speed: towerConfig.bullet_speed, bullet_rate: towerConfig.bullet_rate, bullet_damage: towerConfig.bullet_damage, bullet_sprite: towerConfig.bullet_sprite}
+    { tower_type: selectedTowerType,
+      lastShot: time(),
+      bullet_speed: towerConfig.levels[level].bullet_speed,
+      bullet_rate: towerConfig.levels[level].bullet_rate,
+      bullet_damage: towerConfig.levels[level].bullet_damage,
+      bullet_sprite: towerConfig.levels[level].bullet_sprite,
+      tracking: towerConfig.levels[level].tracking,
+      is_explosive: towerConfig.levels[level].tracking}
   ]);
 
   let lastTargetUpdate = 0;
@@ -214,7 +244,7 @@ export function addGigagantrumTower(position, selectedTowerType) {
       //console.log("refreshing enemies")
       enemies.forEach(e => {
         let distance = e.pos.dist(tower.pos);
-        if (distance <= towerConfig.range && e.pos.x > maxRight) {
+        if (distance <= towerConfig.levels[level].range && e.pos.x > maxRight) {
           maxRight = e.pos.x;
           targetEnemy = e;
           //console.log(`Best enemy was ${e.pos}`)
@@ -232,8 +262,8 @@ export function addGigagantrumTower(position, selectedTowerType) {
     if (currentTarget && currentTime - tower.lastShot > (1 / tower.bullet_rate)) {
       let distanceToCurrentTarget = currentTarget.pos.dist(tower.pos);
 
-      if (distanceToCurrentTarget <= towerConfig.range && currentTarget.hp() > 0) {
-        shootProjectile(tower.pos, currentTarget.pos, tower.bullet_speed, tower.bullet_damage, tower.bullet_sprite, tower);
+      if (distanceToCurrentTarget <= towerConfig.levels[level].range && currentTarget.hp() > 0) {
+        shootProjectile(tower.pos, currentTarget.pos, tower.bullet_speed, tower.bullet_damage, tower.bullet_sprite, tower, tower.tracking, currentTarget);
         tower.lastShot = currentTime; // Update the last shot time
       } else {
         currentTarget = null;
@@ -246,37 +276,133 @@ export function addGigagantrumTower(position, selectedTowerType) {
   if (emptySpotSprite) {
     destroy(emptySpotSprite);
   }
+
+  return tower
 }
+
+const MAX_ANGLE_CHANGE_PER_UPDATE = .5; // Max angle change in degrees per update
 
 // Projectile function
-function shootProjectile(fromPos, toPos, bulletSpeed, bulletDamage, bulletSprite, tower) {
-  const direction = toPos.sub(fromPos).unit();
-  const angle = (Math.atan2(direction.y, direction.x)* 180 / Math.PI)+90;
+function updateProjectileDirectionAndAngle(projectile, target) {
+    // Calculate the new direction towards the target
+    const newDirection = target.pos.sub(projectile.pos).unit();
+    // Calculate the desired new angle based on the new direction
+    let newAngle = Math.atan2(newDirection.y, newDirection.x) * 180 / Math.PI + 90;
+    // Normalize the new angle to be within 0-360 degrees
+    newAngle = (newAngle + 360) % 360;
+    // Calculate the current angle of the projectile, adjusted to be within 0-360 degrees
+    let currentAngle = (projectile.angle + 360) % 360;
+    // Calculate the shortest angle difference including direction (clockwise or counterclockwise)
+    let angleDiff = ((newAngle - currentAngle + 540) % 360) - 180;
+    // Limit the angle change to the maximum allowed, preserving direction
+    angleDiff = Math.min(Math.max(angleDiff, -MAX_ANGLE_CHANGE_PER_UPDATE), MAX_ANGLE_CHANGE_PER_UPDATE);
+    // Apply the limited angle difference to the current angle to get the new adjusted angle
+    projectile.angle = currentAngle + angleDiff;
+    // Convert the new adjusted angle back to radians for movement calculation
+    const adjustedAngleRad = (projectile.angle - 90) * Math.PI / 180;
+    // Update the projectile's movement direction based on the adjusted angle
+    projectile.move(vec2(Math.cos(adjustedAngleRad), Math.sin(adjustedAngleRad)).scale(projectile.speed));
+    // Update the lastDirection based on the new adjusted angle, for consistency
+    projectile.lastDirection = vec2(Math.cos(adjustedAngleRad), Math.sin(adjustedAngleRad));
+    projectile.lastAngle = projectile.angle; // Store the current angle for the next update cycle
+}
 
-  const projectile = add([
-    sprite(bulletSprite), // Adjust size as needed
-    pos(fromPos),
-    color(255, 0, 0),
-    area(),
-    rotate(angle),
-    z(5),
-    "projectile", // Tag for collision detection
-    move(direction, bulletSpeed), // Adjust speed as needed
-  ]);
+function calculateLeadPosition(fromPos, toPos, targetSpeed, bulletSpeed) {
+  // Direct distance between the shooter and the target
+  let distance = fromPos.dist(toPos);
+
+  // Time it takes for the projectile to reach the target
+  let timeToHit = distance / bulletSpeed;
+
+  // Placeholder: Calculate or get the target's velocity vector (speed and direction)
+  // This could be derived from movement over time or given data.
+  let targetVelocity = new Vec2(targetSpeed, targetSpeed); // Example; adjust as needed
+
+  // Estimated target movement during the time to hit
+  //let targetMovement = targetVelocity.scale(timeToHit);
+
+  // Adjust offset based on angle to target
+  // Calculate the angle (in radians) between the turret and the target
+  let angleToTarget = Math.atan2(toPos.y - fromPos.y, toPos.x - fromPos.x);
+
+  // Scale the offset by the cosine of the angle to reduce it for shallow angles
+  let angleAdjustmentFactor = 1-(Math.abs(Math.cos(angleToTarget)));
+  console.log(angleAdjustmentFactor);
+  let targetMovement = targetVelocity.scale(angleAdjustmentFactor*timeToHit);
+
+  // Calculate the lead position
+  let leadPosition = toPos.add(targetMovement);
+
+  return leadPosition;
+}
+
+
+function shootProjectile(fromPos, toPos, bulletSpeed, bulletDamage, bulletSprite, tower, tracking = false, target = null) {
+  let leadPosition = calculateLeadPosition(fromPos, toPos, target.speed, bulletSpeed);
+
+  // Then calculate the direction to this lead position
+  let direction = leadPosition.sub(fromPos).unit();
+
+  let angle = (Math.atan2(direction.y, direction.x) * 180 / Math.PI) + 90;
+
+  let projectile = null;
+
+  if (tracking && target) {
+    projectile = add([
+      sprite(bulletSprite),
+      pos(fromPos),
+      color(255, 0, 0),
+      area(),
+      rotate(angle),
+      anchor("center"),
+      offscreen({ destroy: true }),
+      z(5),
+      "projectile",
+      { speed: bulletSpeed, tracking: tracking, lastDirection: direction, lastAngle: angle, is_explosive: tower.is_explosive}
+    ]);
+    projectile.onUpdate(() => {
+      if (target.exists() && target.hp() > 0) {
+        updateProjectileDirectionAndAngle(projectile,target);
+      } else {
+        projectile.move(projectile.lastDirection.scale(projectile.speed));
+      }
+    });
+  } else {
+    projectile = add([
+      sprite(bulletSprite),
+      pos(fromPos),
+      color(255, 0, 0),
+      area(),
+      rotate(angle),
+      offscreen({ destroy: true }),
+      move(direction, bulletSpeed),
+      z(5),
+      "projectile",
+      { speed: bulletSpeed, is_explosive: tower.is_explosive}
+    ]);
+    //projectile.move(direction.scale(bulletSpeed));
+  }
+
+  // This sets the tower's angle, might not be needed unless you're visually rotating towers
   tower.angle = angle;
+
   projectile.onCollide("enemy", (e) => {
-    //console.log(`Hitting for ${bulletDamage} on ${e.hp()}`);
-    e.hurt(bulletDamage); // Reduce enemy health
-    //console.log(`new health for ${e.hp()}`);
+    e.hurt(bulletDamage);
     if (e.hp() <= 0) {
       addMoney(e.death_money);
-      e.destroy(); // Destroy enemy if health is 0 or less
+      e.destroy();
     }
-    destroy(projectile);
-  });
-  // Destroy the projectile after 2 seconds
-  wait(2, () => {
-    //debug.log("remove bullet");
-    destroy(projectile);
+
+    destroy(projectile); // Destroy the projectile upon collision
+    if(projectile.is_explosive) {
+      const bomb = add([
+        sprite("explosion"),
+        pos(projectile.pos),
+        z(20),
+        anchor("center")
+      ]);
+      bomb.play("boom");
+    }
   });
 }
+

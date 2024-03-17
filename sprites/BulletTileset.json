@@ -1,0 +1,14 @@
+{
+  "missile_1": {
+    "x": 0,
+    "y": 0,
+    "width": 13,
+    "height": 35
+  },
+  "missile_2": {
+    "x": 13,
+    "y": 0,
+    "width": 19,
+    "height": 40
+  }
+}

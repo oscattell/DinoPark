@@ -21,6 +21,7 @@ export function addMoney(amount) {
 }
 
 export function subtractMoney(amount) {
+  console.log(`Subtracting ${amount} from  ${money}`)
   if (money >= amount) {
     money -= amount;
   } else {

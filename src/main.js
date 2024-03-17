@@ -1,12 +1,13 @@
-import {displayTowerSelectionMenuAt, generateTowerSpotsFromLevel} from "./Tower.js";
+import {generateTowerSpotsFromLevel, hideTowerSelectionMenu} from "./Tower.js";
 import {addEnemy, setPathFromLevel, generateStartPosFromLevel} from "./Enemy.js";
 import { addMoney, subtractMoney, getMoney, diplayMoney } from "./state.js";
 
 kaboom()
 
 const waves = [
-  "1111114",
-  "22222222223",
+  /*"1111114",
+  "22222222223",*/
+  "2"
 ];
 
 const levelPath = [
@@ -21,21 +22,41 @@ let isGameOver = false;
 let currentWaveIndex = 0;
 let enemiesRemaining = 0;
 let start = vec2(0,0);
+let lives = 1;
+let godMode = true;
+
+function displayLives() {
+  destroyAll("lives");
+  if (godMode) {
+    add([
+      sprite("lives_infinite"),
+      "lives",
+      pos((levelPath[0].length*128) - 80, -20)
+    ]);
+  } else {
+    add([
+      sprite("lives_1"),
+      "lives",
+      pos((levelPath[0].length*128) - 80, -20)
+    ]);
+  }
+
+}
 
 function spawnEnemyFromType(type) {
   if(!isGameOver) {
     switch (type) {
       case '1':
-        addEnemy("ghosty", start, onEnemyDefeated);
+        addEnemy("ghosty", start, onEnemyDefeated, onEnemyReachEnd);
         break;
       case '2':
-        addEnemy("ghostyf", start, onEnemyDefeated);
+        addEnemy("ghostyf", start, onEnemyDefeated, onEnemyReachEnd);
         break;
       case '3':
-        addEnemy("ghostyg", start, onEnemyDefeated);
+        addEnemy("ghostyg", start, onEnemyDefeated, onEnemyReachEnd);
         break;
       case '4':
-        addEnemy("ghostyb", start, onEnemyDefeated);
+        addEnemy("ghostyb", start, onEnemyDefeated, onEnemyReachEnd);
         break;
     }
   }
@@ -55,6 +76,11 @@ function startWave(waveString) {
   }
 }
 
+function onEnemyReachEnd() {
+  if(!godMode) {
+    go("lose");
+  }
+}
 
 function onEnemyDefeated() {
   enemiesRemaining--;
@@ -71,7 +97,8 @@ function countdownToNextWave() {
     if (currentWaveIndex < waves.length) {
       startWave(waves[currentWaveIndex]);
     } else {
-      console.log("All waves completed!");
+      currentWaveIndex--;
+      startWave(waves[currentWaveIndex]);
     }
   }, countdown * 1000);
 }
@@ -86,9 +113,14 @@ loadSprite("egg", "/sprites/towerDefense_tile250.png")
 loadSprite("bullet1", "/sprites/bulletRed1_outline.png")
 loadSprite("bullet2", "/sprites/bulletGreen2.png")
 loadSprite("bullet3", "/sprites/towerDefense_tile251.png")
+loadSprite("dollar", "/sprites/dollarsymbol.png")
 
+loadSpriteAtlas("/sprites/BulletTileset.png", "/sprites/BulletTileset.json")
+loadSpriteAtlas("/sprites/TowerTileset.png", "/sprites/TowerTileset.json")
+loadSpriteAtlas("/sprites/IconsTileset.png", "/sprites/IconsTileset.json")
 loadSpriteAtlas("/sprites/0x72_DungeonTilesetII_v1.6.png", "/sprites/0x72_DungeonTilesetII_v1.6.json")
 loadSpriteAtlas("/sprites/Paths.png", "/sprites/Paths.json")
+loadSpriteAtlas("/sprites/Effect_Explosion_1.png", "/sprites/Effect_Explosion_1.json")
 
 const level = addLevel(levelPath, {
 	// The size of each grid
@@ -151,14 +183,55 @@ scene("lose", () => {
   isGameOver = true;
 })
 
+
+onMousePress(() => {
+  let found_item = false;
+
+  for (const obj of get("towerSpotButton").reverse()) {
+    if (obj.isHovering()) {
+      console.log("found a spot")
+      obj.onSelect()
+      found_item = true
+      break
+    }
+  }
+  if (!found_item) {
+    for (const obj of get("towerMenuButton").reverse()) {
+      if (obj.isHovering()) {
+        console.log("found a menu")
+        obj.onSelect()
+        found_item = true
+        break
+      }
+    }
+  }
+
+  if(!found_item) {
+    console.log("didn't find a button closing all")
+    hideTowerSelectionMenu();
+  }
+
+})
+
 setPathFromLevel(levelPath,128,128,vec2(0, 0));
 start = generateStartPosFromLevel(levelPath,128,128);
 generateTowerSpotsFromLevel(levelPath,128,128,vec2(0, 0));
-diplayMoney(1000)
+diplayMoney(1000);
 // Initially start the first wave
 if (waves.length > 0) {
   startWave(waves[currentWaveIndex]);
 }
+displayLives();
+
+onKeyPress("g", () => {
+  if (!godMode) {
+    godMode = true;
+
+  } else {
+    godMode = false;
+  }
+  displayLives();
+})
 
 debug.inspect = true
 

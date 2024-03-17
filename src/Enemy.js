@@ -95,7 +95,7 @@ export function setPathFromLevel(levelLayout, tileWidth, tileHeight, startPos) {
 }
 
 
-export function addEnemy(type, enemyPos, onDefeatedCallback) {
+export function addEnemy(type, enemyPos, onDefeatedCallback, onReachEndCallback) {
   const enemyConfig = enemyTypes[type];
   let currentTargetIndex = 0; // Start with the first waypoint
 
@@ -109,7 +109,7 @@ export function addEnemy(type, enemyPos, onDefeatedCallback) {
     anchor("center"),
     "enemy",
     state("move", ["idle", "attack", "move"]),
-    {death_money: enemyConfig.death_money}
+    {death_money: enemyConfig.death_money, speed: enemyConfig.speed}
   ]);
 
   enemy.play("run")
@@ -121,7 +121,7 @@ export function addEnemy(type, enemyPos, onDefeatedCallback) {
       if (currentTargetIndex >= path.length) {
         // If there are no more waypoints, you might want to destroy the enemy or trigger another action
         destroy(enemy);
-        go("lose");
+        onReachEndCallback();
         return;
       }
     }
