@@ -364,6 +364,11 @@ function shootProjectile(fromPos, toPos, bulletSpeed, bulletDamage, bulletSprite
       if (target.exists() && target.hp() > 0) {
         updateProjectileDirectionAndAngle(projectile,target);
       } else {
+        let randomWait = 0.5 + Math.random() * 3;
+
+        wait(randomWait, () => {
+          destroy(projectile);
+        });
         projectile.move(projectile.lastDirection.scale(projectile.speed));
       }
     });
@@ -386,6 +391,19 @@ function shootProjectile(fromPos, toPos, bulletSpeed, bulletDamage, bulletSprite
   // This sets the tower's angle, might not be needed unless you're visually rotating towers
   tower.angle = angle;
 
+  projectile.onDestroy(() => {
+    if(projectile.is_explosive) {
+      const bomb = add([
+        sprite("explosion"),
+        pos(projectile.pos),
+        z(20),
+        anchor("center"),
+        lifespan(2)
+      ]);
+      bomb.play("boom");
+    }
+  })
+
   projectile.onCollide("enemy", (e) => {
     e.hurt(bulletDamage);
     if (e.hp() <= 0) {
@@ -394,7 +412,7 @@ function shootProjectile(fromPos, toPos, bulletSpeed, bulletDamage, bulletSprite
     }
 
     destroy(projectile); // Destroy the projectile upon collision
-    if(projectile.is_explosive) {
+    /*if(projectile.is_explosive) {
       const bomb = add([
         sprite("explosion"),
         pos(projectile.pos),
@@ -402,7 +420,7 @@ function shootProjectile(fromPos, toPos, bulletSpeed, bulletDamage, bulletSprite
         anchor("center")
       ]);
       bomb.play("boom");
-    }
+    }*/
   });
 }
 
