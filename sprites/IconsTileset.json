@@ -10,5 +10,17 @@
     "y": 768,
     "width": 64,
     "height": 64
+  },
+  "sell_icon": {
+    "x": 1024,
+    "y": 192,
+    "width": 64,
+    "height": 64
+  },
+  "upgrade_icon": {
+    "x": 64,
+    "y": 448,
+    "width": 64,
+    "height": 64
   }
 }

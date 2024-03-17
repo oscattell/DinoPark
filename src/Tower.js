@@ -95,7 +95,6 @@ export function generateTowerSpotsFromLevel(levelLayout, tileWidth, tileHeight, 
             if (!spotButton.menuOpen) {
               displayTowerSelectionMenuAt(spot, spotButton);
             } else {
-              console.log("closing menu");
               hideTowerSelectionMenu();
             }
           }
@@ -118,7 +117,6 @@ export function displayTowerSelectionMenuAt(spot, spotButton) {
   let yOffset = 30; // Initial vertical offset for the first menu item
   const menuItemHeight = 70; // Height plus some padding
 
-
   if (!spot.occupied) {
     Object.keys(towerTypes).forEach((towerType, index) => {
       const buttonPos = vec2(spot.pos.x, spot.pos.y + yOffset);
@@ -135,26 +133,43 @@ export function displayTowerSelectionMenuAt(spot, spotButton) {
 
       yOffset += menuItemHeight; // Move down for the next menu item
     });
-  } else if (spot.level < towerTypes[spot.tower.tower_type].levels.length - 1) {
-    console.log(`Tower is level ${spot.level} and the max upgrades are ${towerTypes[spot.tower.tower_type].levels.length}`)
+  } else {
+    // This block handles the case where the tower spot is occupied (i.e., there's already a tower)
     const buttonPos = vec2(spot.pos.x, spot.pos.y + yOffset);
     const currentTowerType = spot.tower.tower_type;
 
-    addTowerButton("dollar", towerTypes[currentTowerType].levels[spot.level + 1].cost, buttonPos, spotButton, () => {
-        console.log(`Upgrade tower`)
+    // Check if the tower can be upgraded
+    if (spot.level < towerTypes[currentTowerType].levels.length - 1) {
+      // Tower upgrade button
+      addTowerButton("upgrade_icon", towerTypes[currentTowerType].levels[spot.level + 1].cost, buttonPos, spotButton, () => {
+          console.log(`Upgrade tower`);
+          if (getMoney() >= towerTypes[currentTowerType].levels[spot.level + 1].cost) {
+            spot.level += 1;
+            spot.tower.destroy();
+            spot.tower = addTower(spot.pos, currentTowerType, spot.level);
+            subtractMoney(towerTypes[currentTowerType].levels[spot.level].cost);
+          }
+      },{r: 0, g: 0, b: 0});
 
-        if (getMoney() >= towerTypes[currentTowerType].levels[spot.level + 1].cost) {
-          spot.level += 1;
-          spot.tower.destroy();
-          spot.tower = addTower(spot.pos, currentTowerType, spot.level);
-          subtractMoney(towerTypes[currentTowerType].levels[spot.level].cost);
-        }
+      yOffset += menuItemHeight; // Adjust position for the next button
+    }
 
-      });
+    // Sell tower button - this should be available whether the tower is at max level or not
+    const sellButtonPos = vec2(spot.pos.x, spot.pos.y + yOffset);
+    const refundAmount = towerTypes[currentTowerType].levels[spot.level].cost * 0.75; // Example refund calculation
+
+    addTowerButton("sell_icon", -refundAmount, sellButtonPos, spotButton, () => {
+        console.log(`Sold tower`);
+        addMoney(refundAmount); // Refund some money for selling the tower
+        spot.tower.destroy(); // Remove the tower from the game
+        spot.occupied = false;
+        spot.level = 0;
+        spot.tower = null; // Clear the tower data
+    },{r: 0, g: 0, b: 0});
   }
 }
 
-function addTowerButton(icon, cost, position, spotButton, onSelect) {
+function addTowerButton(icon, cost, position, spotButton, onSelect, spriteColor) {
   //const { tower_sprite, cost } = towerTypes[towerType];
 
   const btn = add([
@@ -171,12 +186,21 @@ function addTowerButton(icon, cost, position, spotButton, onSelect) {
       }},
   ]);
 
-  // Tower icon
-  btn.add([
-    sprite(icon),
-    pos(0,15), // Position inside the button
-    scale(0.5), // Scale the sprite down to fit the button
-  ]);
+  // Icon
+  if (spriteColor) {
+    btn.add([
+      sprite(icon),
+      pos(0, 15), // Position inside the button
+      scale(0.5), // Scale the sprite down to fit the button
+      color(spriteColor.r, spriteColor.g, spriteColor.b)
+    ]);
+  } else {
+    btn.add([
+      sprite(icon),
+      pos(0, 15), // Position inside the button
+      scale(0.5), // Scale the sprite down to fit the button
+    ]);
+  }
 
   // Cost text
   btn.add([
@@ -204,7 +228,6 @@ export function hideTowerSelectionMenu() {
   // Retrieve all objects tagged as "towerSpotButton" and reset their menuOpen property
   const towerSpotButtons = get("towerSpotButton");
   towerSpotButtons.forEach((btn) => {
-    console.log("resetting all menus")
     btn.menuOpen = false;
   });
 }
@@ -241,13 +264,11 @@ export function addTower(position, selectedTowerType, level = 0) {
       let targetEnemy = null;
       let maxRight = -Infinity;
       const enemies = get("enemy").filter(e => e.hp() > 0);
-      //console.log("refreshing enemies")
       enemies.forEach(e => {
         let distance = e.pos.dist(tower.pos);
         if (distance <= towerConfig.levels[level].range && e.pos.x > maxRight) {
           maxRight = e.pos.x;
           targetEnemy = e;
-          //console.log(`Best enemy was ${e.pos}`)
         }
       });
 
@@ -318,16 +339,12 @@ function calculateLeadPosition(fromPos, toPos, targetSpeed, bulletSpeed) {
   // This could be derived from movement over time or given data.
   let targetVelocity = new Vec2(targetSpeed, targetSpeed); // Example; adjust as needed
 
-  // Estimated target movement during the time to hit
-  //let targetMovement = targetVelocity.scale(timeToHit);
-
   // Adjust offset based on angle to target
   // Calculate the angle (in radians) between the turret and the target
   let angleToTarget = Math.atan2(toPos.y - fromPos.y, toPos.x - fromPos.x);
 
   // Scale the offset by the cosine of the angle to reduce it for shallow angles
   let angleAdjustmentFactor = 1-(Math.abs(Math.cos(angleToTarget)));
-  console.log(angleAdjustmentFactor);
   let targetMovement = targetVelocity.scale(angleAdjustmentFactor*timeToHit);
 
   // Calculate the lead position
