@@ -1,13 +1,13 @@
 import {generateTowerSpotsFromLevel, hideTowerSelectionMenu} from "./Tower.js";
 import {addEnemy, setPathFromLevel, generateStartPosFromLevel} from "./Enemy.js";
-import { addMoney, subtractMoney, getMoney, diplayMoney } from "./state.js";
+import {displayMoney } from "./state.js";
 
 kaboom()
 
 const waves = [
   /*"1111114",
   "22222222223",*/
-  "2"
+  "1234"
 ];
 
 const levelPath = [
@@ -31,13 +31,15 @@ function displayLives() {
     add([
       sprite("lives_infinite"),
       "lives",
-      pos((levelPath[0].length*128) - 80, -20)
+      z(9),
+      pos(width() - 80, -20)
     ]);
   } else {
     add([
       sprite("lives_1"),
       "lives",
-      pos((levelPath[0].length*128) - 80, -20)
+      z(9),
+      pos(width() - 80, -20)
     ]);
   }
 
@@ -103,17 +105,10 @@ function countdownToNextWave() {
   }, countdown * 1000);
 }
 
-
 // Load the sprite for empty tower spots
-loadSprite("emptyTower", "/sprites/heart.png")
-loadSprite("bean", "/sprites/towerDefense_tile249.png")
-loadSprite("ghosty", "/sprites/ghosty.png")
-loadSprite("gigagantrum", "/sprites/towerDefense_tile204.png")
-loadSprite("egg", "/sprites/towerDefense_tile250.png")
 loadSprite("bullet1", "/sprites/bulletRed1_outline.png")
 loadSprite("bullet2", "/sprites/bulletGreen2.png")
 loadSprite("bullet3", "/sprites/towerDefense_tile251.png")
-loadSprite("dollar", "/sprites/dollarsymbol.png")
 
 loadSpriteAtlas("/sprites/BulletTileset.png", "/sprites/BulletTileset.json")
 loadSpriteAtlas("/sprites/TowerTileset.png", "/sprites/TowerTileset.json")
@@ -121,57 +116,83 @@ loadSpriteAtlas("/sprites/IconsTileset.png", "/sprites/IconsTileset.json")
 loadSpriteAtlas("/sprites/0x72_DungeonTilesetII_v1.6.png", "/sprites/0x72_DungeonTilesetII_v1.6.json")
 loadSpriteAtlas("/sprites/Paths.png", "/sprites/Paths.json")
 loadSpriteAtlas("/sprites/Effect_Explosion_1.png", "/sprites/Effect_Explosion_1.json")
+loadSpriteAtlas("/sprites/uipack_rpg_sheet.png", "/sprites/uipack_rpg_sheet.json")
 
-const level = addLevel(levelPath, {
-	// The size of each grid
-	tileWidth: 128,
-	tileHeight: 128,
-	// The position of the top left block
-	pos: vec2(0, 0),
-	// Define what each symbol means (in components)
-	tiles: {
-		"┃": () => [
-			sprite("path_up"),
-      z(0)
-		],
-		"━": () => [
-			sprite("path_right"),
-      z(0)
-		],
-		"S": () => [
-			sprite("path_right"),
-      z(0)
-		],
-		"E": () => [
-			sprite("path_end"),
-      z(0)
-		],
-		"┗": () => [
-			sprite("path_down_right"),
-      z(0)
-		],
-		"┛": () => [
-			sprite("path_right_up"),
-      z(0)
-		],
-		"┏": () => [
-			sprite("path_up_right"),
-      z(0)
-		],
-		"┓": () => [
-			sprite("path_right_down"),
-      z(0)
-		],
-		" ": () => [
-			sprite("grass"),
-      z(0)
-		],
-		"x": () => [
-			sprite("tower"),
-      z(0)
-		]
-	},
-})
+setLevel(levelPath);
+
+function setLevel(level) {
+  const screenWidth = width();
+  const screenHeight = height();
+
+  // Calculate the required number of tiles to fill the screen
+  const tilesRequiredX = Math.max(Math.ceil(screenWidth / 128),level[0].length);
+  const tilesRequiredY = Math.ceil(screenHeight / 128);
+
+  // Adjust the level width
+  for (let i = 0; i < level.length; i++) {
+    const shortfallX = tilesRequiredX - level[i].length;
+    console.log(`On row ${i} I need to add ${shortfallX}`)
+    if (shortfallX > 0) {
+      level[i] += ' '.repeat(shortfallX);
+    }
+  }
+
+  // Adjust the level height
+  const shortfallY = tilesRequiredY - level.length;
+  for (let i = 0; i < shortfallY; i++) {
+    level.push(' '.repeat(tilesRequiredX));
+  }
+
+  addLevel(level, {
+    tileWidth: 128,
+    tileHeight: 128,
+    pos: vec2(0, 0),
+    tiles: {
+      "┃": () => [
+        sprite("path_up"),
+        z(0)
+      ],
+      "━": () => [
+        sprite("path_right"),
+        z(0)
+      ],
+      "S": () => [
+        sprite("path_right"),
+        z(0)
+      ],
+      "E": () => [
+        sprite("path_end"),
+        z(0)
+      ],
+      "┗": () => [
+        sprite("path_down_right"),
+        z(0)
+      ],
+      "┛": () => [
+        sprite("path_right_up"),
+        z(0)
+      ],
+      "┏": () => [
+        sprite("path_up_right"),
+        z(0)
+      ],
+      "┓": () => [
+        sprite("path_right_down"),
+        z(0)
+      ],
+      " ": () => [
+        sprite("grass"),
+        z(0)
+      ],
+      "x": () => [
+        sprite("tower"),
+        z(0)
+      ]
+    },
+  })
+}
+
+
 
 scene("lose", () => {
   add([
@@ -216,7 +237,7 @@ onMousePress(() => {
 setPathFromLevel(levelPath,128,128,vec2(0, 0));
 start = generateStartPosFromLevel(levelPath,128,128);
 generateTowerSpotsFromLevel(levelPath,128,128,vec2(0, 0));
-diplayMoney(1000);
+displayMoney(1000);
 // Initially start the first wave
 if (waves.length > 0) {
   startWave(waves[currentWaveIndex]);

@@ -1,15 +1,24 @@
 // state.js
 let money = 500; // Starting money
 let moneyCounter = null;
-export function diplayMoney(startingMoney = 500) {
+export function displayMoney(startingMoney = 500) {
   money = startingMoney
+  add([
+    sprite("grey_backgroud"),
+    pos(0, 0),
+    z(1)
+  ])
   moneyCounter = add([
-    text(`Money: $${getMoney()}`),
-    pos(20, 20),
+    text(`Money: $${getMoney()}`, {
+        size: 24, // 48 pixels tall
+        font: "sans-serif", // specify any font you loaded or browser built-in
+    }),
+    pos(12, 12),
     color(0,0,0),
     z(9),
     { value: getMoney() },
   ]);
+
 }
 export function getMoney() {
   return money;
