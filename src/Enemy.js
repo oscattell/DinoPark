@@ -12,7 +12,6 @@ let path =  [];
 export function generateStartPosFromLevel(levelLayout, tileWidth, tileHeight) {
   const start = findStart(levelLayout);
   let startPos = vec2((start.x * tileWidth), (start.y * tileHeight)+(tileHeight/2))
-  console.log(`Start found at ${startPos}`)
   return startPos
 }
 

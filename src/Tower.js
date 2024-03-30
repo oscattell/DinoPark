@@ -76,10 +76,8 @@ export function generateTowerSpotsFromLevel(levelLayout, tileWidth, tileHeight, 
           level: 0 // Keeping track of the tower's current level
         };
 
-
         // Add the new tower spot to the array
         towerSpots.push(spot);
-        console.log("added a tower button")
         // Add an invisible button over the spot
         const spotButton = add([
         rect(50, 50),
@@ -117,7 +115,6 @@ export function displayTowerSelectionMenuAt(spot, spotButton) {
       const buttonPos = vec2(spot.pos.x, spot.pos.y + yOffset);
       const { tower_sprite, cost } = towerTypes[towerType].levels[0];
       addTowerButton(tower_sprite, cost, buttonPos, spotButton, () => {
-        console.log(`Adding tower ${towerType}`)
         if (getMoney() >= towerTypes[towerType].levels[0].cost) {
           spot.occupied = true;
           spot.level = 0;
@@ -137,7 +134,6 @@ export function displayTowerSelectionMenuAt(spot, spotButton) {
     if (spot.level < towerTypes[currentTowerType].levels.length - 1) {
       // Tower upgrade button
       addTowerButton("upgrade_icon", towerTypes[currentTowerType].levels[spot.level + 1].cost, buttonPos, spotButton, () => {
-          console.log(`Upgrade tower`);
           if (getMoney() >= towerTypes[currentTowerType].levels[spot.level + 1].cost) {
             spot.level += 1;
             spot.tower.destroy();
@@ -154,7 +150,6 @@ export function displayTowerSelectionMenuAt(spot, spotButton) {
     const refundAmount = towerTypes[currentTowerType].levels[spot.level].cost * 0.75; // Example refund calculation
 
     addTowerButton("sell_icon", -refundAmount, sellButtonPos, spotButton, () => {
-        console.log(`Sold tower`);
         addMoney(refundAmount); // Refund some money for selling the tower
         spot.tower.destroy(); // Remove the tower from the game
         spot.occupied = false;
