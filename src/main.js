@@ -105,7 +105,8 @@ function countdownToNextWave() {
   }, countdown * 1000);
 }
 
-// Load the sprite for empty tower spots
+loadSprite("menu", "/sprites/Menu.png")
+loadSprite("play", "/sprites/PlayButton.png")
 loadSprite("bullet1", "/sprites/bulletRed1_outline.png")
 loadSprite("bullet2", "/sprites/bulletGreen2.png")
 loadSprite("bullet3", "/sprites/towerDefense_tile251.png")
@@ -118,7 +119,7 @@ loadSpriteAtlas("/sprites/Paths.png", "/sprites/Paths.json")
 loadSpriteAtlas("/sprites/Effect_Explosion_1.png", "/sprites/Effect_Explosion_1.json")
 loadSpriteAtlas("/sprites/uipack_rpg_sheet.png", "/sprites/uipack_rpg_sheet.json")
 
-setLevel(levelPath);
+
 
 function setLevel(level) {
   const screenWidth = width();
@@ -192,9 +193,45 @@ function setLevel(level) {
   })
 }
 
+scene("menu", () => {
+  setLevel([""])
 
+  add([
+    sprite("menu"),
+    pos(width() / 2, height() / 3),
+    anchor("center"),
+    z(9)
+  ]);
+
+  const playButton = add([
+    sprite("white_button"),
+    pos(width() / 2, height() / 2),
+    anchor("center"),
+    "play",
+    area(),
+    scale(1.2),
+    z(9)
+  ]);
+  playButton.add([sprite("play"), anchor("center"),scale(0.6)])
+
+  playButton.onClick(() => {
+    go("game")
+  })
+
+  // Add enemies walking randomly
+  loop(2, () => {
+    const enemyType = choose(["ghosty", "ghostyf", "ghostyg", "ghostyb"]); // Choose enemy type at random
+    const enemy = addEnemy(enemyType, vec2(0, rand(0, height())), () => {}, () => {});
+    enemy.onUpdate(() => {
+      enemy.move(100, 0); // Set random velocity
+    })
+
+  });
+});
 
 scene("lose", () => {
+  setLevel([""])
+
   add([
     text("Game Over"),
     color(255,0,0),
@@ -204,55 +241,56 @@ scene("lose", () => {
   isGameOver = true;
 })
 
-
-onMousePress(() => {
-  let found_item = false;
-
-  for (const obj of get("towerSpotButton").reverse()) {
-    if (obj.isHovering()) {
-      console.log("found a spot")
-      obj.onSelect()
-      found_item = true
-      break
-    }
+scene("game", () => {
+  setLevel(levelPath);
+  setPathFromLevel(levelPath,128,128,vec2(0, 0));
+  start = generateStartPosFromLevel(levelPath,128,128);
+  generateTowerSpotsFromLevel(levelPath,128,128,vec2(0, 0));
+  displayMoney(1000);
+  // Initially start the first wave
+  if (waves.length > 0) {
+    startWave(waves[currentWaveIndex]);
   }
-  if (!found_item) {
-    for (const obj of get("towerMenuButton").reverse()) {
+  displayLives();
+
+  onKeyPress("g", () => {
+    if (!godMode) {
+      godMode = true;
+
+    } else {
+      godMode = false;
+    }
+    displayLives();
+  })
+
+  onMousePress(() => {
+    let found_item = false;
+
+    for (const obj of get("towerSpotButton").reverse()) {
       if (obj.isHovering()) {
-        console.log("found a menu")
+        console.log("found a spot")
         obj.onSelect()
         found_item = true
         break
       }
     }
-  }
+    if (!found_item) {
+      for (const obj of get("towerMenuButton").reverse()) {
+        if (obj.isHovering()) {
+          console.log("found a menu")
+          obj.onSelect()
+          found_item = true
+          break
+        }
+      }
+    }
 
-  if(!found_item) {
-    console.log("didn't find a button closing all")
-    hideTowerSelectionMenu();
-  }
+    if(!found_item) {
+      console.log("didn't find a button closing all")
+      hideTowerSelectionMenu();
+    }
 
+  })
 })
 
-setPathFromLevel(levelPath,128,128,vec2(0, 0));
-start = generateStartPosFromLevel(levelPath,128,128);
-generateTowerSpotsFromLevel(levelPath,128,128,vec2(0, 0));
-displayMoney(1000);
-// Initially start the first wave
-if (waves.length > 0) {
-  startWave(waves[currentWaveIndex]);
-}
-displayLives();
-
-onKeyPress("g", () => {
-  if (!godMode) {
-    godMode = true;
-
-  } else {
-    godMode = false;
-  }
-  displayLives();
-})
-
-debug.inspect = true
-
+go("menu")

@@ -79,7 +79,7 @@ export function generateTowerSpotsFromLevel(levelLayout, tileWidth, tileHeight, 
 
         // Add the new tower spot to the array
         towerSpots.push(spot);
-
+        console.log("added a tower button")
         // Add an invisible button over the spot
         const spotButton = add([
         rect(50, 50),
@@ -103,11 +103,6 @@ export function generateTowerSpotsFromLevel(levelLayout, tileWidth, tileHeight, 
       }
     }
   }
-
-  // Make tower spot buttons clickable
-  /*onClick("towerSpotButton", (spotButton) => {
-    spotButton.clickAction();
-  });*/
 }
 
 export function displayTowerSelectionMenuAt(spot, spotButton) {

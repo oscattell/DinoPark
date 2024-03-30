@@ -4,5 +4,17 @@
     "y": 331,
     "width": 190,
     "height": 45
+  },
+  "white_button": {
+    "x": 0,
+    "y": 282,
+    "width": 190,
+    "height": 49
+  },
+  "white_button_pressed": {
+    "x": 0,
+    "y": 237,
+    "width": 190,
+    "height": 45
   }
 }

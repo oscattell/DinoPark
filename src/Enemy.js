@@ -101,20 +101,25 @@ export function addEnemy(type, enemyPos, onDefeatedCallback, onReachEndCallback)
 
   const enemy = add([
     sprite(enemyConfig.sprite),
-    //color(enemyConfig.color.r, enemyConfig.color.g, enemyConfig.color.b),
     pos(enemyPos),
     area(),
     scale(2),
     health(enemyConfig.health),
     anchor("center"),
+    offscreen({ destroy: true }),
     "enemy",
     state("move", ["idle", "attack", "move"]),
     {death_money: enemyConfig.death_money, speed: enemyConfig.speed}
   ]);
 
+  enemy.onDestroy(() => {
+    console.log("I died");
+  })
+
   enemy.play("run")
 
   enemy.onUpdate(() => {
+    if (!path[currentTargetIndex]) return;
     // Check if the enemy has reached its current target waypoint
     if (vec2(enemy.pos).dist(path[currentTargetIndex]) < 5) { // 5 is a small threshold to consider 'reaching' the waypoint
       currentTargetIndex++; // Move to the next waypoint
@@ -133,5 +138,7 @@ export function addEnemy(type, enemyPos, onDefeatedCallback, onReachEndCallback)
   enemy.onDestroy(() => {
     onDefeatedCallback()
   });
+
+  return enemy
 }
 
