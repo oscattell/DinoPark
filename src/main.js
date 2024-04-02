@@ -5,61 +5,65 @@ import {displayMoney } from "./state.js";
 kaboom()
 
 const waves = [
-  /*"1111114",
-  "22222222223",*/
-  "1234"
+  "11100111",
+  "1120113",
+  "323544",
+  "454054022",
+  "64321",
+  "6540346",
+  "66566",
 ];
 
 const levelPath = [
-  	"  x          ",
-    "  ┏━━┓     x ",
-  	"S━┛  ┃ x  xx ",
-  	"  x  ┃     x ",
-    "    x┗━━━━━E ",
+  	"    x        ",
+    "  ┏━━┓      ",
+  	"S━┛x ┃ x   ",
+  	"  x  ┃    x ",
+    "     ┗━━━━━E ",
 ]
 
 let isGameOver = false;
 let currentWaveIndex = 0;
 let enemiesRemaining = 0;
 let start = vec2(0,0);
-let lives = 1;
-let godMode = true;
+let lives = 10;
+let godMode = false;
 let timeouts = [];
 
 function displayLives() {
   destroyAll("lives");
-  if (godMode) {
-    add([
-      sprite("lives_infinite"),
-      "lives",
-      z(9),
-      pos(width() - 80, -20)
-    ]);
-  } else {
-    add([
-      sprite("lives_1"),
-      "lives",
-      z(9),
-      pos(width() - 80, -20)
-    ]);
-  }
-
+  let spriteName = godMode ? "lives_infinite" : `lives_${lives}`;
+  add([
+    sprite(spriteName),
+    "lives",
+    z(9),
+    scale(2),
+    pos(width() - 160, -30) // Adjusted Y position for visibility
+  ]);
 }
 
 function spawnEnemyFromType(type) {
+  if (type === "0") return;
+  enemiesRemaining++; // Increment once the enemy is spawned
   if(!isGameOver) {
     switch (type) {
       case '1':
-        addEnemy("ghosty", start, onEnemyDefeated, onEnemyReachEnd);
+        addEnemy("mid.chomping.guy", start, onEnemyDefeated, onEnemyReachEnd);
         break;
       case '2':
-        addEnemy("ghostyf", start, onEnemyDefeated, onEnemyReachEnd);
+        addEnemy("fast.small.boy", start, onEnemyDefeated, onEnemyReachEnd);
         break;
-      case '3':
-        addEnemy("ghostyg", start, onEnemyDefeated, onEnemyReachEnd);
+      case '6':
+        addEnemy("big.fat.boy", start, onEnemyDefeated, onEnemyReachEnd);
         break;
       case '4':
-        addEnemy("ghostyb", start, onEnemyDefeated, onEnemyReachEnd);
+        addEnemy("rib.guy", start, onEnemyDefeated, onEnemyReachEnd);
+        break;
+      case '5':
+        addEnemy("slug.guy", start, onEnemyDefeated, onEnemyReachEnd);
+        break;
+      case '3':
+        addEnemy("robe.guy", start, onEnemyDefeated, onEnemyReachEnd);
         break;
     }
   }
@@ -73,7 +77,6 @@ function startWave(waveString) {
   for (const type of waveString) {
     const timeoutId = setTimeout(() => {
       spawnEnemyFromType(type);
-      enemiesRemaining++; // Increment once the enemy is spawned
     }, delay);
 
     timeouts.push(timeoutId);
@@ -86,14 +89,19 @@ function clearTimeouts() {
   timeouts = [];
 }
 
-// Function to be called when the game ends or you need to cancel the wave
 function cancelWave() {
   clearTimeouts();
 }
 
 function onEnemyReachEnd() {
   if(!godMode) {
-    go("lose");
+    lives -= 1;
+    displayLives();
+
+    if (lives <= 0) {
+      isGameOver = true;
+      go("lose");
+    }
   }
 }
 
@@ -105,18 +113,37 @@ function onEnemyDefeated() {
 }
 
 function countdownToNextWave() {
-  let countdown = 5; // 5 seconds countdown
-  clearTimeouts();
-  const timeoutId = setTimeout(() => {
-    currentWaveIndex++;
-    if (currentWaveIndex < waves.length) {
-      startWave(waves[currentWaveIndex]);
-    } else {
-      currentWaveIndex--;
-      startWave(waves[currentWaveIndex]);
+  let countdown = 5; // Countdown duration in seconds
+  let countdownText = add([
+    text(countdown.toString()), // Initial countdown number as text
+    pos(width() / 2, height() / 2), // Position at the center of the screen
+    anchor("center"), // Origin at the center for scaling and rotation
+    {
+      update() {
+        this.scale = wave(2, 2.5, time() * 3);
+        this.angle = wave(-9, 9, time() * 3);
+      }
     }
-  }, countdown * 1000);
-  timeouts.push(timeoutId);
+  ]);
+
+  const intervalId = setInterval(() => {
+    countdown -= 1;
+    if (countdown > 0) {
+      countdownText.text = countdown.toString(); // Update the countdown text
+    } else {
+      clearInterval(intervalId); // Clear the interval once countdown is done
+      destroy(countdownText); // Remove the countdown text from the screen
+      // Start the next wave
+      currentWaveIndex++;
+      if (currentWaveIndex < waves.length) {
+        startWave(waves[currentWaveIndex]);
+      } else {
+        // If there are no more waves, repeat the last wave or handle game end
+        currentWaveIndex--;
+        startWave(waves[currentWaveIndex]);
+      }
+    }
+  }, 1000); // Update the countdown every second
 }
 
 loadSprite("menu", "/sprites/Menu.png")
@@ -232,7 +259,7 @@ scene("menu", () => {
 
   // Add enemies walking randomly
   loop(2, () => {
-    const enemyType = choose(["ghosty", "ghostyf", "ghostyg", "ghostyb"]); // Choose enemy type at random
+    const enemyType = choose(["mid.chomping.guy", "fast.small.boy", "big.fat.boy", "rib.guy", "slug.guy"]); // Choose enemy type at random
     const enemy = addEnemy(enemyType, vec2(0, rand(0, height())), () => {}, () => {});
     enemy.onUpdate(() => {
       enemy.move(100, 0); // Set random velocity
@@ -271,13 +298,14 @@ scene("lose", () => {
 
 scene("game", () => {
   isGameOver = false;
+  lives = 10;
   currentWaveIndex = 0;
   enemiesRemaining = 0;
   setLevel(levelPath);
   setPathFromLevel(levelPath,128,128,vec2(0, 0));
   start = generateStartPosFromLevel(levelPath,128,128);
   generateTowerSpotsFromLevel(levelPath,128,128,vec2(0, 0));
-  displayMoney(1000);
+  displayMoney(500);
   // Initially start the first wave
   if (waves.length > 0) {
     startWave(waves[currentWaveIndex]);

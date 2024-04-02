@@ -1,60 +1,101 @@
 import {addMoney, getMoney, subtractMoney} from "./state.js";
 
 export const towerTypes = {
-  gigagantrum: {
+  Rocketlauncher: {
     levels: [{tower_sprite: "missile_tower_1",
       bullet_sprite: "missile_1",
       range: 400,
-      cost: 100,
+      cost: 300,
       bullet_speed: 400,
       bullet_rate: 1,
-      bullet_damage:30,
+      bullet_damage:10,
       tracking: true,
       explosive: true},
     {tower_sprite: "missile_tower_2",
       bullet_sprite: "missile_1",
       range: 400,
-      cost: 200,
-      bullet_speed: 200,
+      cost: 500,
+      bullet_speed: 400,
       bullet_rate: 1,
-      bullet_damage:60,
+      bullet_damage:30,
       tracking: true,
       explosive: true},
     {tower_sprite: "missile_tower_3",
       bullet_sprite: "missile_2",
       range: 400,
-      cost: 200,
-      bullet_speed: 200,
+      cost: 700,
+      bullet_speed: 300,
       bullet_rate: 1,
-      bullet_damage:60,
+      bullet_damage:50,
       tracking: true,
       explosive: true}]
   },
-  beanTower: {
+  Minigun: {
     levels: [{
-    tower_sprite: "machinegun_tower_1",
-    bullet_sprite: "bullet2",
-    range: 500,
-    cost: 500,
-    bullet_speed: 400,
-    bullet_rate:6,
-    bullet_damage:1,
-    tracking: false,
-    explosive: false}]
+      tower_sprite: "machinegun_tower_1",
+      bullet_sprite: "bullet2",
+      range: 500,
+      cost: 500,
+      bullet_speed: 800,
+      bullet_rate:7,
+      bullet_damage:2,
+      tracking: true,
+      explosive: false},
+    {
+      tower_sprite: "machinegun_tower_2",
+      bullet_sprite: "bullet2",
+      range: 500,
+      cost: 700,
+      bullet_speed: 800,
+      bullet_rate:7,
+      bullet_damage:4,
+      tracking: true,
+      explosive: false},
+    {
+      tower_sprite: "machinegun_tower_3",
+      bullet_sprite: "bullet2",
+      range: 500,
+      cost: 800,
+      bullet_speed: 800,
+      bullet_rate:7,
+      bullet_damage:5,
+      tracking: true,
+      explosive: false}]
   },
-  eggTower: {
+  Sniper: {
     levels: [{
-    tower_sprite: "gun_tower_1",
-    bullet_sprite: "bullet1",
-    range: 1000,
-    cost: 200,
-    bullet_speed: 3000,
-    bullet_rate: 0.5,
-    bullet_damage:100,
-    tracking: false,
-    explosive: false}]
+      tower_sprite: "gun_tower_1",
+      bullet_sprite: "bullet1",
+      range: 1000,
+      cost: 550,
+      bullet_speed: 3000,
+      bullet_rate: 0.5,
+      bullet_damage:80,
+      tracking: true,
+      explosive: false},
+    {
+      tower_sprite: "gun_tower_2",
+      bullet_sprite: "bullet1",
+      range: 1100,
+      cost: 600,
+      bullet_speed: 3000,
+      bullet_rate: 0.5,
+      bullet_damage:90,
+      tracking: true,
+      explosive: false},
+    {
+      tower_sprite: "gun_tower_3",
+      bullet_sprite: "bullet1",
+      range: 1300,
+      cost: 650,
+      bullet_speed: 3000,
+      bullet_rate: 0.5,
+      bullet_damage:200,
+      tracking: true,
+      explosive: false}]
   }
 };
+
 // Define your tower spots
 let towerSpots = [];
 
@@ -147,7 +188,8 @@ export function displayTowerSelectionMenuAt(spot, spotButton) {
 
     // Sell tower button - this should be available whether the tower is at max level or not
     const sellButtonPos = vec2(spot.pos.x, spot.pos.y + yOffset);
-    const refundAmount = towerTypes[currentTowerType].levels[spot.level].cost * 0.75; // Example refund calculation
+    const refundAmount = Math.round(towerTypes[currentTowerType].levels[spot.level].cost * 0.25);
+
 
     addTowerButton("sell_icon", -refundAmount, sellButtonPos, spotButton, () => {
         addMoney(refundAmount); // Refund some money for selling the tower
@@ -239,7 +281,7 @@ export function addTower(position, selectedTowerType, level = 0) {
       bullet_damage: towerConfig.levels[level].bullet_damage,
       bullet_sprite: towerConfig.levels[level].bullet_sprite,
       tracking: towerConfig.levels[level].tracking,
-      is_explosive: towerConfig.levels[level].tracking}
+      is_explosive: towerConfig.levels[level].explosive}
   ]);
 
   let lastTargetUpdate = 0;
@@ -392,10 +434,8 @@ function shootProjectile(fromPos, toPos, bulletSpeed, bulletDamage, bulletSprite
       "projectile",
       { speed: bulletSpeed, is_explosive: tower.is_explosive}
     ]);
-    //projectile.move(direction.scale(bulletSpeed));
   }
 
-  // This sets the tower's angle, might not be needed unless you're visually rotating towers
   tower.angle = angle;
 
   projectile.onDestroy(() => {
@@ -418,16 +458,7 @@ function shootProjectile(fromPos, toPos, bulletSpeed, bulletDamage, bulletSprite
       e.destroy();
     }
 
-    destroy(projectile); // Destroy the projectile upon collision
-    /*if(projectile.is_explosive) {
-      const bomb = add([
-        sprite("explosion"),
-        pos(projectile.pos),
-        z(20),
-        anchor("center")
-      ]);
-      bomb.play("boom");
-    }*/
+    destroy(projectile);
   });
 }
 

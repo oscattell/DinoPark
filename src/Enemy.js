@@ -1,10 +1,12 @@
 import {generateTowerSpotsFromLevel} from "./Tower.js";
 
 const enemyTypes = {
-  "ghosty": { sprite: "chort", health: 20, speed: 100, death_money: 100, color: { r: 0, g: 0, b: 255 }},
-  "ghostyf": { sprite: "imp", health: 5, speed: 300, death_money: 100, color: { r: 255, g: 0, b: 0 }},
-  "ghostyb": { sprite: "big_demon", health: 500, speed: 50, death_money: 1000, color: { r: 255, g: 200, b: 0 }},
-  "ghostyg": { sprite: "wogol", health: 1, speed: 65, death_money: 100, color: { r: 255, g: 200, b: 0 }},
+  "mid.chomping.guy": { sprite: "chort", health: 20, speed: 100, death_money: 25},
+  "fast.small.boy": { sprite: "imp", health: 5, speed: 300, death_money: 25},
+  "big.fat.boy": { sprite: "big_demon", health: 300, speed: 50, death_money: 300},
+  "rib.guy": { sprite: "wogol", health: 10, speed: 65, death_money: 25},
+  "slug.guy": { sprite: "slug", health: 100, speed: 40, death_money: 50},
+  "robe.guy": { sprite: "robe", scale:2.5, health: 30, speed: 65, death_money: 25},
   };
 
 let path =  [];
@@ -97,17 +99,16 @@ export function setPathFromLevel(levelLayout, tileWidth, tileHeight, startPos) {
 export function addEnemy(type, enemyPos, onDefeatedCallback, onReachEndCallback) {
   const enemyConfig = enemyTypes[type];
   let currentTargetIndex = 0; // Start with the first waypoint
-
   const enemy = add([
     sprite(enemyConfig.sprite),
     pos(enemyPos),
     area(),
-    scale(2),
+    scale(enemyConfig.scale ?  enemyConfig.scale : 2),
     health(enemyConfig.health),
     anchor("center"),
     offscreen({ destroy: true }),
     "enemy",
-    state("move", ["idle", "attack", "move"]),
+    state("move", ["move"]),
     {death_money: enemyConfig.death_money, speed: enemyConfig.speed}
   ]);
 
