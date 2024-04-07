@@ -1,3 +1,4 @@
+import kaboom from "kaboom"
 import {generateTowerSpotsFromLevel, hideTowerSelectionMenu} from "./Tower.js";
 import {addEnemy, setPathFromLevel, generateStartPosFromLevel} from "./Enemy.js";
 import {displayMoney } from "./state.js";
