@@ -16,30 +16,48 @@ const waves = [
 ];
 
 const levelPath = [
-  	"    x        ",
-    "  ┏━━┓      ",
+  	"    x      ",
+    "  ┏━━┓     ",
   	"S━┛x ┃ x   ",
-  	"  x  ┃    x ",
-    "     ┗━━━━━E ",
+  	"  x  ┃   x ",
+    "     ┗━━━━E",
 ]
 
 let isGameOver = false;
 let currentWaveIndex = 0;
 let enemiesRemaining = 0;
 let start = vec2(0,0);
-let lives = 10;
+let lives = 5;
+let rank = 1;
 let godMode = false;
 let timeouts = [];
 
 function displayLives() {
   destroyAll("lives");
   let spriteName = godMode ? "lives_infinite" : `lives_${lives}`;
+  if (lives > 0) {
+    add([
+      sprite(spriteName),
+      "lives",
+      z(9),
+      scale(2),
+      pos(width() - 160, -30) // Adjusted Y position for visibility
+    ]);
+  }
+}
+
+function displayRank() {
+  destroyAll("rank");
+  let spriteName = `rank${rank}`;
+  if (rank > 18 ) {
+    spriteName = `rank18`;
+  }
   add([
     sprite(spriteName),
-    "lives",
+    "rank",
     z(9),
-    scale(2),
-    pos(width() - 160, -30) // Adjusted Y position for visibility
+    scale(1),
+    pos(width() /2, 0) // Adjusted Y position for visibility
   ]);
 }
 
@@ -49,22 +67,22 @@ function spawnEnemyFromType(type) {
   if(!isGameOver) {
     switch (type) {
       case '1':
-        addEnemy("mid.chomping.guy", start, onEnemyDefeated, onEnemyReachEnd);
+        addEnemy("mid.chomping.guy", start, onEnemyDefeated, onEnemyReachEnd, false, rank);
         break;
       case '2':
-        addEnemy("fast.small.boy", start, onEnemyDefeated, onEnemyReachEnd);
+        addEnemy("fast.small.boy", start, onEnemyDefeated, onEnemyReachEnd, false, rank);
         break;
       case '6':
-        addEnemy("big.fat.boy", start, onEnemyDefeated, onEnemyReachEnd);
+        addEnemy("big.fat.boy", start, onEnemyDefeated, onEnemyReachEnd, false, rank);
         break;
       case '4':
-        addEnemy("rib.guy", start, onEnemyDefeated, onEnemyReachEnd);
+        addEnemy("rib.guy", start, onEnemyDefeated, onEnemyReachEnd, false, rank);
         break;
       case '5':
-        addEnemy("slug.guy", start, onEnemyDefeated, onEnemyReachEnd);
+        addEnemy("slug.guy", start, onEnemyDefeated, onEnemyReachEnd, false, rank);
         break;
       case '3':
-        addEnemy("robe.guy", start, onEnemyDefeated, onEnemyReachEnd);
+        addEnemy("robe.guy", start, onEnemyDefeated, onEnemyReachEnd, false, rank);
         break;
     }
   }
@@ -139,8 +157,9 @@ function countdownToNextWave() {
       if (currentWaveIndex < waves.length) {
         startWave(waves[currentWaveIndex]);
       } else {
-        // If there are no more waves, repeat the last wave or handle game end
-        currentWaveIndex--;
+        currentWaveIndex = 0;
+        rank++;
+        displayRank();
         startWave(waves[currentWaveIndex]);
       }
     }
@@ -161,6 +180,7 @@ loadSpriteAtlas("/sprites/0x72_DungeonTilesetII_v1.6.png", "/sprites/0x72_Dungeo
 loadSpriteAtlas("/sprites/Paths.png", "/sprites/Paths.json")
 loadSpriteAtlas("/sprites/Effect_Explosion_1.png", "/sprites/Effect_Explosion_1.json")
 loadSpriteAtlas("/sprites/uipack_rpg_sheet.png", "/sprites/uipack_rpg_sheet.json")
+loadSpriteAtlas("/sprites/RankSprites.png", "/sprites/RankSprites.json")
 
 function setLevel(level) {
   const screenWidth = width();
@@ -231,6 +251,9 @@ function setLevel(level) {
       ]
     },
   })
+  setPathFromLevel(level,128,128,vec2(0, 0));
+  start = generateStartPosFromLevel(level,128,128);
+  generateTowerSpotsFromLevel(levelPath,128,128,vec2(0, 0));
 }
 
 scene("menu", () => {
@@ -261,7 +284,7 @@ scene("menu", () => {
   // Add enemies walking randomly
   loop(2, () => {
     const enemyType = choose(["mid.chomping.guy", "fast.small.boy", "big.fat.boy", "rib.guy", "slug.guy"]); // Choose enemy type at random
-    const enemy = addEnemy(enemyType, vec2(0, rand(0, height())), () => {}, () => {});
+    const enemy = addEnemy(enemyType, vec2(0, rand(0, height())), () => {}, () => {}, true);
     enemy.onUpdate(() => {
       enemy.move(100, 0); // Set random velocity
     })
@@ -276,8 +299,9 @@ scene("lose", () => {
   add([
     text("Game Over"),
     color(255,0,0),
-    pos(width()/2, height()/2),
-    anchor("center")
+    pos(width()/2, height()/4),
+    anchor("center"),
+    z(9)
   ])
 
   const playButton = add([
@@ -299,19 +323,17 @@ scene("lose", () => {
 
 scene("game", () => {
   isGameOver = false;
-  lives = 10;
+  lives = 5;
   currentWaveIndex = 0;
   enemiesRemaining = 0;
-  setLevel(levelPath);
-  setPathFromLevel(levelPath,128,128,vec2(0, 0));
-  start = generateStartPosFromLevel(levelPath,128,128);
-  generateTowerSpotsFromLevel(levelPath,128,128,vec2(0, 0));
+  setLevel(levelPath)
   displayMoney(500);
   // Initially start the first wave
   if (waves.length > 0) {
-    startWave(waves[currentWaveIndex]);
+    startWave(waves[0]);
   }
   displayLives();
+  displayRank();
 
   onKeyPress("g", () => {
     if (!godMode) {

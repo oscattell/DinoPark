@@ -1,0 +1,110 @@
+{
+	"rank1": {
+		"x": 0,
+		"y": 0,
+		"width": 64,
+		"height": 64
+	},
+	"rank2": {
+		"x": 64,
+		"y": 0,
+		"width": 64,
+		"height": 64
+	},
+	"rank3": {
+		"x": 128,
+		"y": 0,
+		"width": 64,
+		"height": 64
+	},
+	"rank4": {
+		"x": 192,
+		"y": 0,
+		"width": 64,
+		"height": 64
+	},
+	"rank5": {
+		"x": 256,
+		"y": 0,
+		"width": 64,
+		"height": 64
+	},
+	"rank6": {
+		"x": 320,
+		"y": 0,
+		"width": 64,
+		"height": 64
+	},
+	"rank7": {
+		"x": 384,
+		"y": 0,
+		"width": 64,
+		"height": 64
+	},
+	"rank8": {
+		"x": 448,
+		"y": 0,
+		"width": 64,
+		"height": 64
+	},
+	"rank9": {
+		"x": 512,
+		"y": 0,
+		"width": 64,
+		"height": 64
+	},
+	"rank10": {
+		"x": 0,
+		"y": 64,
+		"width": 64,
+		"height": 64
+	},
+	"rank11": {
+		"x": 64,
+		"y": 64,
+		"width": 64,
+		"height": 64
+	},
+	"rank12": {
+		"x": 128,
+		"y": 64,
+		"width": 64,
+		"height": 64
+	},
+	"rank13": {
+		"x": 192,
+		"y": 64,
+		"width": 64,
+		"height": 64
+	},
+	"rank14": {
+		"x": 256,
+		"y": 64,
+		"width": 64,
+		"height": 64
+	},
+	"rank15": {
+		"x": 320,
+		"y": 64,
+		"width": 64,
+		"height": 64
+	},
+	"rank16": {
+		"x": 384,
+		"y": 64,
+		"width": 64,
+		"height": 64
+	},
+	"rank17": {
+		"x": 448,
+		"y": 64,
+		"width": 64,
+		"height": 64
+	},
+	"rank18": {
+		"x": 512,
+		"y": 64,
+		"width": 64,
+		"height": 64
+	}
+}

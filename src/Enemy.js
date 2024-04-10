@@ -2,18 +2,21 @@ import {generateTowerSpotsFromLevel} from "./Tower.js";
 
 const enemyTypes = {
   "mid.chomping.guy": { sprite: "chort", health: 20, speed: 100, death_money: 25},
-  "fast.small.boy": { sprite: "imp", health: 5, speed: 300, death_money: 25},
-  "big.fat.boy": { sprite: "big_demon", health: 300, speed: 50, death_money: 300},
-  "rib.guy": { sprite: "wogol", health: 10, speed: 65, death_money: 25},
-  "slug.guy": { sprite: "slug", health: 100, speed: 40, death_money: 50},
-  "robe.guy": { sprite: "robe", scale:2.5, health: 30, speed: 65, death_money: 25},
+  "fast.small.boy": { sprite: "imp", health: 1, speed: 300, death_money: 25},
+  "big.fat.boy": { sprite: "big_demon", health: 300, speed: 50, death_money: 75},
+  "rib.guy": { sprite: "wogol", health: 30, speed: 65, death_money: 25},
+  "slug.guy": { sprite: "slug", health: 60, speed: 40, death_money: 50},
+  "robe.guy": { sprite: "robe", scale:2.5, health: 50, speed: 65, death_money: 25},
   };
 
 let path =  [];
 
 export function generateStartPosFromLevel(levelLayout, tileWidth, tileHeight) {
   const start = findStart(levelLayout);
-  let startPos = vec2((start.x * tileWidth), (start.y * tileHeight)+(tileHeight/2))
+  let startPos = vec2(0,0);
+  if (start) {
+    startPos = vec2((start.x * tileWidth), (start.y * tileHeight)+(tileHeight/2))
+  }
   return startPos
 }
 
@@ -96,7 +99,7 @@ export function setPathFromLevel(levelLayout, tileWidth, tileHeight, startPos) {
 }
 
 
-export function addEnemy(type, enemyPos, onDefeatedCallback, onReachEndCallback) {
+export function addEnemy(type, enemyPos, onDefeatedCallback, onReachEndCallback, shouldDestroy = false,difficulty_scale = 1) {
   const enemyConfig = enemyTypes[type];
   let currentTargetIndex = 0; // Start with the first waypoint
   const enemy = add([
@@ -104,9 +107,9 @@ export function addEnemy(type, enemyPos, onDefeatedCallback, onReachEndCallback)
     pos(enemyPos),
     area(),
     scale(enemyConfig.scale ?  enemyConfig.scale : 2),
-    health(enemyConfig.health),
+    health(Math.trunc(enemyConfig.health*difficulty_scale)),
     anchor("center"),
-    offscreen({ destroy: true }),
+    offscreen({ destroy: shouldDestroy }),
     "enemy",
     state("move", ["move"]),
     {death_money: enemyConfig.death_money, speed: enemyConfig.speed}
@@ -141,4 +144,3 @@ export function addEnemy(type, enemyPos, onDefeatedCallback, onReachEndCallback)
 
   return enemy
 }
-
