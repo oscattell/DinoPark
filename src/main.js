@@ -6,7 +6,7 @@ import {displayMoney } from "./state.js";
 kaboom()
 
 const waves = [
-  "11100111",
+  "1110111",
   "1120113",
   "323544",
   "454054022",
@@ -27,7 +27,7 @@ let isGameOver = false;
 let currentWaveIndex = 0;
 let enemiesRemaining = 0;
 let start = vec2(0,0);
-let lives = 5;
+let lives = 10;
 let rank = 1;
 let godMode = false;
 let timeouts = [];
@@ -323,7 +323,7 @@ scene("lose", () => {
 
 scene("game", () => {
   isGameOver = false;
-  lives = 5;
+  lives = 10;
   currentWaveIndex = 0;
   enemiesRemaining = 0;
   setLevel(levelPath)
